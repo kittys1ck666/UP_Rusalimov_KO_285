@@ -29,12 +29,19 @@ public class UserController : ControllerBase
             .AsNoTracking()
             .Select(x => new UserDto
             {
+
                 UserId = x.UserId,
+
                 Fio = x.Fio,
+
                 Phone = x.Phone,
+
                 Login = x.Login,
+
                 Password = x.Password,
+
                 Type = x.Type,
+
             })
             .ToListAsync();
 
@@ -49,12 +56,19 @@ public class UserController : ControllerBase
             .Where(x => x.UserId == id)
             .Select(x => new UserDto
             {
+
                 UserId = x.UserId,
+
                 Fio = x.Fio,
+
                 Phone = x.Phone,
+
                 Login = x.Login,
+
                 Password = x.Password,
+
                 Type = x.Type,
+
             })
             .FirstOrDefaultAsync();
 
@@ -66,11 +80,29 @@ public class UserController : ControllerBase
     {
         var entity = new User
         {
+
+
+
+
             Fio = dto.Fio,
+
+
+
             Phone = dto.Phone,
+
+
+
             Login = dto.Login,
+
+
+
             Password = dto.Password,
+
+
+
             Type = dto.Type,
+
+
         };
 
         _db.Set<User>().Add(entity);
@@ -78,12 +110,19 @@ public class UserController : ControllerBase
 
         return Ok(new UserDto
         {
+
             UserId = entity.UserId,
+
             Fio = entity.Fio,
+
             Phone = entity.Phone,
+
             Login = entity.Login,
+
             Password = entity.Password,
+
             Type = entity.Type,
+
         });
     }
 
@@ -97,32 +136,75 @@ public class UserController : ControllerBase
 
         var dto = new UserUpdateDto
         {
+
+
+
+
             Fio = entity.Fio,
+
+
+
             Phone = entity.Phone,
+
+
+
             Login = entity.Login,
+
+
+
             Password = entity.Password,
+
+
+
             Type = entity.Type,
+
+
         };
 
         patch.ApplyTo(dto, ModelState);
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
+
+
+
+
         entity.Fio = dto.Fio;
+
+
+
         entity.Phone = dto.Phone;
+
+
+
         entity.Login = dto.Login;
+
+
+
         entity.Password = dto.Password;
+
+
+
         entity.Type = dto.Type;
+
+
 
         await _db.SaveChangesAsync();
 
         return Ok(new UserDto
         {
+
             UserId = entity.UserId,
+
             Fio = entity.Fio,
+
             Phone = entity.Phone,
+
             Login = entity.Login,
+
             Password = entity.Password,
+
             Type = entity.Type,
+
         });
     }
 

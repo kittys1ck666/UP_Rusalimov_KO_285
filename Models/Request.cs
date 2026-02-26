@@ -6,45 +6,54 @@ using Microsoft.EntityFrameworkCore;
 
 namespace UP_CONDI_V5.Models;
 
-[Keyless]
 [Table("requests")]
+[Index("ClientId", Name = "ix_requests_client_id")]
+[Index("MasterId", Name = "ix_requests_master_id")]
+[Index("RequestStatus", Name = "ix_requests_status")]
 public partial class Request
 {
-    [Column("requestID")]
-    public int? RequestId { get; set; }
+    [Key]
+    [Column("request_id")]
+    public int RequestId { get; set; }
 
-    [Column("startDate")]
-    [StringLength(50)]
-    public string? StartDate { get; set; }
+    [Column("start_date")]
+    public DateOnly? StartDate { get; set; }
 
-    [Column("climateTechType")]
-    [StringLength(50)]
+    [Column("climate_tech_type")]
+    [StringLength(120)]
     public string? ClimateTechType { get; set; }
 
-    [Column("climateTechModel")]
-    [StringLength(50)]
+    [Column("climate_tech_model")]
+    [StringLength(120)]
     public string? ClimateTechModel { get; set; }
 
-    [Column("problemDescryption")]
-    [StringLength(128)]
-    public string? ProblemDescryption { get; set; }
+    [Column("problem_description")]
+    public string? ProblemDescription { get; set; }
 
-    [Column("requestStatus")]
+    [Column("request_status")]
     [StringLength(50)]
     public string? RequestStatus { get; set; }
 
-    [Column("completionDate")]
-    [StringLength(50)]
-    public string? CompletionDate { get; set; }
+    [Column("completion_date")]
+    public DateOnly? CompletionDate { get; set; }
 
-    [Column("repairParts")]
-    [StringLength(50)]
+    [Column("repair_parts")]
     public string? RepairParts { get; set; }
 
-    [Column("masterID")]
-    [StringLength(50)]
-    public string? MasterId { get; set; }
+    [Column("master_id")]
+    public int? MasterId { get; set; }
 
-    [Column("clientID")]
-    public int? ClientId { get; set; }
+    [Column("client_id")]
+    public int ClientId { get; set; }
+
+    [ForeignKey("ClientId")]
+    [InverseProperty("RequestClients")]
+    public virtual User Client { get; set; } = null!;
+
+    [InverseProperty("Request")]
+    public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
+    [ForeignKey("MasterId")]
+    [InverseProperty("RequestMasters")]
+    public virtual User? Master { get; set; }
 }

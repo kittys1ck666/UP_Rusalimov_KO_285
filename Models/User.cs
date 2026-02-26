@@ -6,29 +6,39 @@ using Microsoft.EntityFrameworkCore;
 
 namespace UP_CONDI_V5.Models;
 
-[Keyless]
 [Table("users")]
 public partial class User
 {
-    [Column("userID")]
-    public int? UserId { get; set; }
+    [Key]
+    [Column("user_id")]
+    public int UserId { get; set; }
 
     [Column("fio")]
-    [StringLength(50)]
-    public string? Fio { get; set; }
+    [StringLength(200)]
+    public string Fio { get; set; } = null!;
 
     [Column("phone")]
-    public long? Phone { get; set; }
+    [StringLength(30)]
+    public string? Phone { get; set; }
 
     [Column("login")]
-    [StringLength(50)]
+    [StringLength(100)]
     public string? Login { get; set; }
 
     [Column("password")]
-    [StringLength(50)]
+    [StringLength(200)]
     public string? Password { get; set; }
 
     [Column("type")]
     [StringLength(50)]
-    public string? Type { get; set; }
+    public string Type { get; set; } = null!;
+
+    [InverseProperty("Master")]
+    public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
+    [InverseProperty("Client")]
+    public virtual ICollection<Request> RequestClients { get; set; } = new List<Request>();
+
+    [InverseProperty("Master")]
+    public virtual ICollection<Request> RequestMasters { get; set; } = new List<Request>();
 }

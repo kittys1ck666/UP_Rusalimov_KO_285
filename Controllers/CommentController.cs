@@ -29,10 +29,15 @@ public class CommentController : ControllerBase
             .AsNoTracking()
             .Select(x => new CommentDto
             {
+
                 CommentId = x.CommentId,
+
                 Message = x.Message,
+
                 MasterId = x.MasterId,
+
                 RequestId = x.RequestId,
+
             })
             .ToListAsync();
 
@@ -47,10 +52,15 @@ public class CommentController : ControllerBase
             .Where(x => x.CommentId == id)
             .Select(x => new CommentDto
             {
+
                 CommentId = x.CommentId,
+
                 Message = x.Message,
+
                 MasterId = x.MasterId,
+
                 RequestId = x.RequestId,
+
             })
             .FirstOrDefaultAsync();
 
@@ -62,9 +72,21 @@ public class CommentController : ControllerBase
     {
         var entity = new Comment
         {
+
+
+
+
             Message = dto.Message,
+
+
+
             MasterId = dto.MasterId,
+
+
+
             RequestId = dto.RequestId,
+
+
         };
 
         _db.Set<Comment>().Add(entity);
@@ -72,10 +94,15 @@ public class CommentController : ControllerBase
 
         return Ok(new CommentDto
         {
+
             CommentId = entity.CommentId,
+
             Message = entity.Message,
+
             MasterId = entity.MasterId,
+
             RequestId = entity.RequestId,
+
         });
     }
 
@@ -89,17 +116,41 @@ public class CommentController : ControllerBase
 
         var dto = new CommentUpdateDto
         {
+
+
+
+
             Message = entity.Message,
+
+
+
             MasterId = entity.MasterId,
+
+
+
             RequestId = entity.RequestId,
+
+
         };
 
         patch.ApplyTo(dto, ModelState);
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
+
+
+
+
         entity.Message = dto.Message;
+
+
+
         entity.MasterId = dto.MasterId;
+
+
+
         entity.RequestId = dto.RequestId;
+
+
 
         await _db.SaveChangesAsync();
 
@@ -107,8 +158,11 @@ public class CommentController : ControllerBase
         {
 
             CommentId = entity.CommentId,
+
             Message = entity.Message,
+
             MasterId = entity.MasterId,
+
             RequestId = entity.RequestId,
 
         });

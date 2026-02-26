@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using UP_CONDI_V5.Data;
-//using UP_CONDI_V5.Services;
+using UP_CONDI_V5.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,8 +24,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 
 // DI сервисов auth
-//builder.Services.AddScoped<PasswordHasherService>();
-//builder.Services.AddScoped<JwtTokenService>();
+builder.Services.AddScoped<PasswordHasherService>();
+builder.Services.AddScoped<JwtTokenService>();
 
 // JWT auth
 var jwt = builder.Configuration.GetSection("Jwt");

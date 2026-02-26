@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>КОНДИ — Web UI</title>
+  <link rel="stylesheet" href="site.css" />
+</head>
+
+<body data-page="app">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="title">КОНДИ</div>
+        <div class="sub">Authorized: <span id="auth_status">Not authorized</span></div>
+      </div>
+
+      <nav class="nav">
+        <button class="navbtn active" id="nav_tables" type="button">TABLES</button>
+        <button class="navbtn" id="nav_logs" type="button">LOGS</button>
+        <button class="navbtn" id="nav_history" type="button">HISTORY</button>
+        <button class="navbtn" id="nav_exit" type="button">EXIT</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="workpanel">
+      <div class="inner">
+
+        <!-- TABLES VIEW -->
+        <div class="view active" id="view_tables">
+          <div class="row">
+            <div class="label">
+              <select id="entity_select" class="select-table"></select>
+            </div>
+
+            <input id="search_q" class="search" placeholder="Search" />
+
+            <button class="btn" id="btn_open_create" type="button">ADD</button>
+          </div>
+
+          <div class="row" style="margin-top: 10px;">
+            <div class="pills">
+              <span class="pill">Selected ID: <span id="selected_id">—</span></span>
+              <span class="pill">Found: <span id="search_count">—</span></span>
+              <span class="pill">Page: <span id="page_label">1 / 1</span></span>
+            </div>
+
+            <div class="spacer"></div>
+
+            <button class="btn btn-lite" id="btn_reload" type="button">RELOAD</button>
+            <button class="btn btn-small" id="btn_open_view" type="button">OPEN</button>
+            <button class="btn btn-small" id="btn_open_edit" type="button">EDIT</button>
+            <button class="btn btn-small btn-danger" id="btn_open_delete" type="button">DELETE</button>
+          </div>
+
+          <!-- Pagination controls -->
+          <div class="row" style="margin-top: 10px;">
+            <button class="btn btn-lite" id="btn_page_prev" type="button">Prev</button>
+            <button class="btn btn-lite" id="btn_page_next" type="button">Next</button>
+
+            <span class="pill">Go to page:</span>
+            <input id="page_input" style="width:110px; background:#fff; color:#111; border-color:rgba(0,0,0,.25);" placeholder="1" />
+            <button class="btn btn-lite" id="btn_page_go" type="button">Go</button>
+
+            <span class="pill">Go to ID:</span>
+            <input id="goto_id" style="width:160px; background:#fff; color:#111; border-color:rgba(0,0,0,.25);" placeholder="e.g. 123" />
+            <button class="btn btn-lite" id="btn_goto_id" type="button">Find</button>
+
+            <div class="spacer"></div>
+
+            <span class="pill">Per page:</span>
+            <input id="page_size" style="width:110px; background:#fff; color:#111; border-color:rgba(0,0,0,.25);" placeholder="12" />
+            <button class="btn btn-lite" id="btn_page_apply" type="button">Apply</button>
+          </div>
+
+          <!-- CARDS -->
+          <div class="cardswrap">
+            <div class="cardsgrid" id="cards_grid"></div>
+          </div>
+
+          <div class="row" style="margin-top: 10px;">
+            <div class="muted" style="font-family: ui-sans-serif, system-ui; font-size: 12px;">
+              Tip: click card to select • double-click (or OPEN) to view • Enter in Search filters locally
+            </div>
+            <div class="spacer"></div>
+            <button class="btn btn-lite" id="btn_token_toggle" type="button">TOKEN</button>
+            <button class="btn btn-lite" id="btn_login_page" type="button">LOGIN PAGE</button>
+            <button class="btn btn-lite" id="btn_logout" type="button">LOGOUT</button>
+          </div>
+        </div>
+
+        <!-- LOGS VIEW -->
+        <div class="view" id="view_logs">
+          <div class="row">
+            <div class="label">Logs</div>
+            <div class="spacer"></div>
+            <button class="btn btn-lite" id="btn_logs_clear" type="button">CLEAR</button>
+          </div>
+          <pre id="log" class="logbox"></pre>
+        </div>
+
+        <!-- HISTORY VIEW -->
+        <div class="view" id="view_history">
+          <div class="row">
+            <div class="label">History</div>
+          </div>
+          <div style="margin-top:12px; font-family: ui-sans-serif, system-ui;">
+            Позже сюда можно добавить историю действий (Create/Edit/Delete) — когда подключим backend audit.
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Token modal -->
+  <div class="modal" id="token_modal" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close="1"></div>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span class="badge" id="token_badge">JWT</span>
+          <span>Token</span>
+        </div>
+        <button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <pre id="token_box" class="logbox" style="min-height:auto;"></pre>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-lite" id="btn_token_copy" type="button">Copy</button>
+        <button class="btn" data-close="1" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details modal (card expand) -->
+  <div class="modal" id="details_modal" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close="1"></div>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span class="badge ok" id="details_badge">DETAILS</span>
+          <span id="details_title">…</span>
+        </div>
+        <button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="details_body" style="font-family: ui-sans-serif, system-ui;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-lite" id="btn_details_copy" type="button">Copy JSON</button>
+        <button class="btn" data-close="1" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create/Edit modal (NO JSON) -->
+  <div class="modal" id="form_modal" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close="1"></div>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span class="badge" id="form_badge">FORM</span>
+          <span id="form_title">…</span>
+        </div>
+        <button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="form_fields" class="formgrid"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-lite" data-close="1" type="button">Cancel</button>
+        <button class="btn" id="btn_form_submit" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm modal -->
+  <div class="modal" id="confirm_modal" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close="1"></div>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span class="badge warn" id="confirm_badge">CONFIRM</span>
+          <span id="confirm_title">Confirm</span>
+        </div>
+        <button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="confirm_body" style="font-family: ui-sans-serif, system-ui;">…</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-lite" data-close="1" type="button">Cancel</button>
+        <button class="btn btn-danger" id="btn_confirm_yes" type="button">Yes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message modal (errors) -->
+  <div class="modal" id="msg_modal" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close="1"></div>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span class="badge" id="msg_kind">INFO</span>
+          <span id="msg_title">Message</span>
+        </div>
+        <button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="msg_body" style="font-family: ui-sans-serif, system-ui; white-space: pre-wrap;">…</div>
+        <details style="margin-top: 10px; font-family: ui-sans-serif, system-ui;">
+          <summary>Details</summary>
+          <pre id="msg_details" class="logbox" style="min-height:auto;"></pre>
+        </details>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-close="1" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

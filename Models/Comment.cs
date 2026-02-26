@@ -6,20 +6,29 @@ using Microsoft.EntityFrameworkCore;
 
 namespace UP_CONDI_V5.Models;
 
-[Keyless]
 [Table("comments")]
+[Index("MasterId", Name = "ix_comments_master_id")]
+[Index("RequestId", Name = "ix_comments_request_id")]
 public partial class Comment
 {
-    [Column("commentID")]
-    public int? CommentId { get; set; }
+    [Key]
+    [Column("comment_id")]
+    public int CommentId { get; set; }
 
     [Column("message")]
-    [StringLength(50)]
-    public string? Message { get; set; }
+    public string Message { get; set; } = null!;
 
-    [Column("masterID")]
+    [Column("master_id")]
     public int? MasterId { get; set; }
 
-    [Column("requestID")]
-    public int? RequestId { get; set; }
+    [Column("request_id")]
+    public int RequestId { get; set; }
+
+    [ForeignKey("MasterId")]
+    [InverseProperty("Comments")]
+    public virtual User? Master { get; set; }
+
+    [ForeignKey("RequestId")]
+    [InverseProperty("Comments")]
+    public virtual Request Request { get; set; } = null!;
 }

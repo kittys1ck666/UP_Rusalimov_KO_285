@@ -29,16 +29,27 @@ public class RequestController : ControllerBase
             .AsNoTracking()
             .Select(x => new RequestDto
             {
+
                 RequestId = x.RequestId,
+
                 StartDate = x.StartDate,
+
                 ClimateTechType = x.ClimateTechType,
+
                 ClimateTechModel = x.ClimateTechModel,
-                ProblemDescryption = x.ProblemDescryption,
+
+                ProblemDescription = x.ProblemDescription,
+
                 RequestStatus = x.RequestStatus,
+
                 CompletionDate = x.CompletionDate,
+
                 RepairParts = x.RepairParts,
+
                 MasterId = x.MasterId,
+
                 ClientId = x.ClientId,
+
             })
             .ToListAsync();
 
@@ -53,16 +64,27 @@ public class RequestController : ControllerBase
             .Where(x => x.RequestId == id)
             .Select(x => new RequestDto
             {
+
                 RequestId = x.RequestId,
+
                 StartDate = x.StartDate,
+
                 ClimateTechType = x.ClimateTechType,
+
                 ClimateTechModel = x.ClimateTechModel,
-                ProblemDescryption = x.ProblemDescryption,
+
+                ProblemDescription = x.ProblemDescription,
+
                 RequestStatus = x.RequestStatus,
+
                 CompletionDate = x.CompletionDate,
+
                 RepairParts = x.RepairParts,
+
                 MasterId = x.MasterId,
+
                 ClientId = x.ClientId,
+
             })
             .FirstOrDefaultAsync();
 
@@ -74,15 +96,45 @@ public class RequestController : ControllerBase
     {
         var entity = new Request
         {
+
+
+
+
             StartDate = dto.StartDate,
+
+
+
             ClimateTechType = dto.ClimateTechType,
+
+
+
             ClimateTechModel = dto.ClimateTechModel,
-            ProblemDescryption = dto.ProblemDescryption,
+
+
+
+            ProblemDescription = dto.ProblemDescription,
+
+
+
             RequestStatus = dto.RequestStatus,
+
+
+
             CompletionDate = dto.CompletionDate,
+
+
+
             RepairParts = dto.RepairParts,
+
+
+
             MasterId = dto.MasterId,
+
+
+
             ClientId = dto.ClientId,
+
+
         };
 
         _db.Set<Request>().Add(entity);
@@ -90,16 +142,27 @@ public class RequestController : ControllerBase
 
         return Ok(new RequestDto
         {
+
             RequestId = entity.RequestId,
+
             StartDate = entity.StartDate,
+
             ClimateTechType = entity.ClimateTechType,
+
             ClimateTechModel = entity.ClimateTechModel,
-            ProblemDescryption = entity.ProblemDescryption,
+
+            ProblemDescription = entity.ProblemDescription,
+
             RequestStatus = entity.RequestStatus,
+
             CompletionDate = entity.CompletionDate,
+
             RepairParts = entity.RepairParts,
+
             MasterId = entity.MasterId,
+
             ClientId = entity.ClientId,
+
         });
     }
 
@@ -113,44 +176,115 @@ public class RequestController : ControllerBase
 
         var dto = new RequestUpdateDto
         {
+
+
+
+
             StartDate = entity.StartDate,
+
+
+
             ClimateTechType = entity.ClimateTechType,
+
+
+
             ClimateTechModel = entity.ClimateTechModel,
-            ProblemDescryption = entity.ProblemDescryption,
+
+
+
+            ProblemDescription = entity.ProblemDescription,
+
+
+
             RequestStatus = entity.RequestStatus,
+
+
+
             CompletionDate = entity.CompletionDate,
+
+
+
             RepairParts = entity.RepairParts,
+
+
+
             MasterId = entity.MasterId,
+
+
+
             ClientId = entity.ClientId,
+
+
         };
 
         patch.ApplyTo(dto, ModelState);
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        
+
+
+
+
+
         entity.StartDate = dto.StartDate;
+
+
+
         entity.ClimateTechType = dto.ClimateTechType;
+
+
+
         entity.ClimateTechModel = dto.ClimateTechModel;
-        entity.ProblemDescryption = dto.ProblemDescryption;
+
+
+
+        entity.ProblemDescription = dto.ProblemDescription;
+
+
+
         entity.RequestStatus = dto.RequestStatus;
+
+
+
         entity.CompletionDate = dto.CompletionDate;
+
+
+
         entity.RepairParts = dto.RepairParts;
+
+
+
         entity.MasterId = dto.MasterId;
+
+
+
         entity.ClientId = dto.ClientId;
+
+
 
         await _db.SaveChangesAsync();
 
         return Ok(new RequestDto
         {
+
             RequestId = entity.RequestId,
+
             StartDate = entity.StartDate,
+
             ClimateTechType = entity.ClimateTechType,
+
             ClimateTechModel = entity.ClimateTechModel,
-            ProblemDescryption = entity.ProblemDescryption,
+
+            ProblemDescription = entity.ProblemDescription,
+
             RequestStatus = entity.RequestStatus,
+
             CompletionDate = entity.CompletionDate,
+
             RepairParts = entity.RepairParts,
+
             MasterId = entity.MasterId,
+
             ClientId = entity.ClientId,
+
         });
     }
 
