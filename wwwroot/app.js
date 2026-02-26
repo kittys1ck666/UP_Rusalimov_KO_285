@@ -1,6 +1,8 @@
+// PgGen gen-web — FULL app.js (cards + pagination + details + forms + separate login page)
 (() => {
   "use strict";
 
+  // ====== Generated entities list (Scriban) ======
   const ENTITIES = [
 
     {
@@ -76,10 +78,9 @@
   ];
 
   const $ = (id) => document.getElementById(id);
-
   const page = document.body.getAttribute("data-page") || "app";
 
-  // Shared (present on both pages when needed)
+  // Shared (login + app)
   const shared = {
     msgModal: $("msg_modal"),
     msgKind: $("msg_kind"),
@@ -87,18 +88,19 @@
     msgBody: $("msg_body"),
     msgDetails: $("msg_details"),
 
+    // login page
     loginUser: $("login_user"),
     loginPass: $("login_pass"),
     btnDoLogin: $("btn_do_login"),
     btnRegister: $("btn_register"),
     btnGoApp: $("btn_go_app"),
-
     errLogin: $("err_login"),
     errPass: $("err_pass"),
   };
 
-  // App-only elements (index.html)
+  // App page elements (index.html)
   const app = {
+    // nav / views
     navTables: $("nav_tables"),
     navLogs: $("nav_logs"),
     navHistory: $("nav_history"),
@@ -108,8 +110,8 @@
     viewLogs: $("view_logs"),
     viewHistory: $("view_history"),
 
+    // auth/token
     authStatus: $("auth_status"),
-
     btnTokenToggle: $("btn_token_toggle"),
     btnTokenCopy: $("btn_token_copy"),
     tokenBox: $("token_box"),
@@ -118,9 +120,11 @@
     btnLoginPage: $("btn_login_page"),
     btnLogout: $("btn_logout"),
 
+    // main controls
     entitySelect: $("entity_select"),
     searchQ: $("search_q"),
     btnReload: $("btn_reload"),
+
     btnOpenCreate: $("btn_open_create"),
     btnOpenEdit: $("btn_open_edit"),
     btnOpenDelete: $("btn_open_delete"),
@@ -130,33 +134,37 @@
     selectedId: $("selected_id"),
     pageLabel: $("page_label"),
 
+    // paging
     btnPrev: $("btn_page_prev"),
     btnNext: $("btn_page_next"),
     pageInput: $("page_input"),
     btnPageGo: $("btn_page_go"),
-
     gotoId: $("goto_id"),
     btnGotoId: $("btn_goto_id"),
-
     pageSize: $("page_size"),
     btnPageApply: $("btn_page_apply"),
 
+    // cards
     cardsGrid: $("cards_grid"),
 
+    // logs
     log: $("log"),
     btnLogsClear: $("btn_logs_clear"),
 
+    // form modal
     formModal: $("form_modal"),
     formBadge: $("form_badge"),
     formTitle: $("form_title"),
     formFields: $("form_fields"),
     btnFormSubmit: $("btn_form_submit"),
 
+    // confirm modal
     confirmModal: $("confirm_modal"),
     confirmTitle: $("confirm_title"),
     confirmBody: $("confirm_body"),
     btnConfirmYes: $("btn_confirm_yes"),
 
+    // details modal
     detailsModal: $("details_modal"),
     detailsTitle: $("details_title"),
     detailsBody: $("details_body"),
@@ -170,21 +178,22 @@
     selectedRowId: null,
     selectedRowObj: null,
 
-    allRows: [],
-    viewRows: [],
-    pageRows: [],
+    allRows: [],     // full sorted list
+    viewRows: [],    // filtered list
+    pageRows: [],    // current page
 
     isBusy: false,
 
     page: 1,
     pageSize: 12,
 
-    currentFormMode: null,
+    currentFormMode: null, // create/edit
     currentEntity: null,
+
     confirmResolve: null,
   };
 
-  // ===== Common helpers =====
+  // ===== Modal helpers =====
   function openModal(el){ if (el) el.classList.add("open"); }
   function closeModal(el){ if (el) el.classList.remove("open"); }
 
@@ -220,12 +229,27 @@
     openModal(shared.msgModal);
   }
 
+  function confirmDialog(title, body) {
+    return new Promise((resolve) => {
+      if (!app.confirmModal) {
+        resolve(window.confirm(`${title}\n\n${body}`));
+        return;
+      }
+      app.confirmTitle.textContent = title || "Confirm";
+      app.confirmBody.textContent = body || "";
+      state.confirmResolve = resolve;
+      openModal(app.confirmModal);
+    });
+  }
+
+  // ===== Logging =====
   function log(line) {
     if (!app.log) return;
     const ts = new Date().toISOString();
     app.log.textContent = `[${ts}] ${line}\n` + app.log.textContent;
   }
 
+  // ===== Busy =====
   function setBusy(isBusy, label) {
     state.isBusy = !!isBusy;
 
@@ -236,13 +260,15 @@
           app.btnTokenToggle, app.btnTokenCopy, app.btnLogout, app.btnLoginPage,
           app.btnFormSubmit, app.btnLogsClear,
           app.navTables, app.navLogs, app.navHistory, app.navExit,
-          app.btnPrev, app.btnNext, app.btnPageGo, app.btnGotoId, app.btnPageApply
+          app.btnPrev, app.btnNext, app.btnPageGo, app.btnGotoId, app.btnPageApply,
+          app.btnConfirmYes, app.btnDetailsCopy
         ].filter(Boolean);
 
     for (const b of btns) b.disabled = state.isBusy;
     if (label && page !== "login") log(label + (state.isBusy ? "..." : " OK"));
   }
 
+  // ===== HTTP =====
   function normalizeApiBase(apiBase){
     if (!apiBase) return "/api";
     let b = apiBase.trim();
@@ -250,6 +276,7 @@
     while (b.endsWith("/") && b.length > 1) b = b.slice(0,-1);
     return b;
   }
+
   function apiUrl(path){
     const base = normalizeApiBase(state.apiBase);
     if (!path.startsWith("/")) path = "/" + path;
@@ -261,6 +288,7 @@
   async function http(method, url, body, expectJson = true){
     const headers = {};
     if (state.token) headers["Authorization"] = `Bearer ${state.token}`;
+
     const init = { method, headers };
 
     if (body !== undefined){
@@ -286,10 +314,11 @@
     try { return JSON.parse(text); } catch { return text; }
   }
 
-  // ===== Auth / redirects =====
+  // ===== Redirects =====
   function goToLogin() { window.location.href = "login.html"; }
   function goToApp() { window.location.href = "index.html"; }
 
+  // ===== Auth =====
   async function doLogin(isRegister){
     const user = (shared.loginUser?.value || "").trim();
     const pass = (shared.loginPass?.value || "").trim();
@@ -305,15 +334,20 @@
       setBusy(true, "Auth");
       const url = apiUrl(isRegister ? "/api/Auth/register" : "/api/Auth/login");
       const res = await http("POST", url, { username: user, password: pass }, true);
-      const token = res?.token || res?.accessToken || (typeof res === "string" ? res : "");
+
+      const token =
+        res?.token ?? res?.Token ??
+        res?.accessToken ?? res?.AccessToken ??
+        res?.jwt ?? res?.Jwt ??
+        (typeof res === "string" ? res : "");
+
       if (!token) throw new Error("Token not found in API response.");
 
       state.token = token;
       localStorage.setItem("pggen_token", token);
 
       showMessage("ok", "Success", isRegister ? "Registered + logged in." : "Logged in.");
-      // Redirect to app
-      setTimeout(() => goToApp(), 300);
+      setTimeout(() => goToApp(), 250);
     } catch(e){
       showMessage("err","Auth error", String(e?.message || e), e?._details || "");
     } finally {
@@ -326,11 +360,11 @@
     localStorage.removeItem("pggen_token");
     if (page === "app") {
       showMessage("ok","Done","Logged out.");
-      setTimeout(() => goToLogin(), 250);
+      setTimeout(() => goToLogin(), 200);
     }
   }
 
-  // ===== App page logic below =====
+  // ===== App helpers =====
   function setAuthUI(){
     if (!app.authStatus) return;
     app.authStatus.textContent = state.token ? "ADMIN" : "Not authorized";
@@ -341,6 +375,7 @@
     const name = app.entitySelect?.value;
     return ENTITIES.find(x => x.name === name) || null;
   }
+
   function renderEntities(){
     if (!app.entitySelect) return;
     app.entitySelect.innerHTML = "";
@@ -353,29 +388,41 @@
   }
 
   function camelCase(s){ return !s ? s : (s.length===1 ? s.toLowerCase() : s[0].toLowerCase()+s.slice(1)); }
+
   function findKeyCI(obj, wanted){
     if (!obj || !wanted) return null;
     const w = wanted.toLowerCase();
     return Object.keys(obj).find(k => k.toLowerCase() === w) || null;
   }
+
   function getRowId(row, entity){
     if (!row) return null;
+
     const pk = entity?.pk;
     if (pk){
-      const k1 = findKeyCI(row, pk); if (k1) return row[k1];
-      const k2 = findKeyCI(row, camelCase(pk)); if (k2) return row[k2];
+      const k1 = findKeyCI(row, pk);
+      if (k1) return row[k1];
+
+      const k2 = findKeyCI(row, camelCase(pk));
+      if (k2) return row[k2];
     }
-    const k3 = findKeyCI(row,"id"); if (k3) return row[k3];
+
+    const k3 = findKeyCI(row, "id");
+    if (k3) return row[k3];
+
     const last = Object.keys(row).find(k => k.toLowerCase().endsWith("id"));
     return last ? row[last] : null;
   }
+
   function normRoute(entity){ return String(entity?.route || "").replace(/^\/+/, ""); }
 
   function compareIds(a, b, entity){
     const av = getRowId(a, entity);
     const bv = getRowId(b, entity);
+
     const an = (typeof av === "number") ? av : (av != null && av !== "" && !isNaN(Number(av)) ? Number(av) : null);
     const bn = (typeof bv === "number") ? bv : (bv != null && bv !== "" && !isNaN(Number(bv)) ? Number(bv) : null);
+
     if (an != null && bn != null) return an - bn;
     return String(av ?? "").localeCompare(String(bv ?? ""));
   }
@@ -383,6 +430,7 @@
   function resetSelection(){
     state.selectedRowId = null;
     state.selectedRowObj = null;
+
     if (app.selectedId) app.selectedId.textContent = "—";
     if (app.btnOpenEdit) app.btnOpenEdit.disabled = true;
     if (app.btnOpenDelete) app.btnOpenDelete.disabled = true;
@@ -533,6 +581,7 @@
   async function reload(){
     const entity = getSelectedEntity();
     if (!entity) return;
+
     try{
       setBusy(true,"Loading");
       const url = apiUrl(`/${normRoute(entity)}`);
@@ -638,16 +687,227 @@
     openModal(app.detailsModal);
   }
 
-  // NOTE: Form handlers omitted here to keep response size reasonable.
-  // Use your existing "no JSON form" block (renderForm/buildPayload/submitForm/deleteSelected)
-  // from the previous message, unchanged, and keep the wiring below.
+  // ===== Forms (NO JSON) =====
+  function isPkField(entity, fieldName){
+    return entity?.pk && fieldName && fieldName.toLowerCase() === entity.pk.toLowerCase();
+  }
 
+  function inputTypeFor(t){
+    const x = (t||"").toLowerCase();
+    if (["int","long","short","byte","decimal","double","float"].includes(x)) return "number";
+    if (["bool","boolean"].includes(x)) return "checkbox";
+    if (["datetime","datetimeoffset"].includes(x)) return "datetime-local";
+    return "text";
+  }
+
+  function hintFor(field){
+    const n = (field?.name || "");
+    const t = (field?.type || "").toLowerCase();
+    if (["int","long","short","byte","decimal","double","float","number"].includes(t)) return "Введите число (например 10 или 99.5).";
+    if (t === "bool" || t === "boolean") return "Флажок: да/нет.";
+    if (t === "datetime" || t === "datetimeoffset") return "Дата и время (локально).";
+    if (n.toLowerCase().includes("email")) return "Введите email в формате name@example.com.";
+    if (n.toLowerCase().includes("phone")) return "Введите телефон (любая форма).";
+    if (n.toLowerCase().includes("title") || n.toLowerCase().includes("name")) return "Короткое понятное название.";
+    return "Заполните значение.";
+  }
+
+  function toDatetimeLocal(v){
+    if (v===null || v===undefined || v==="") return "";
+    const s = String(v);
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) return s;
+    if (s.includes("T")) return s.replace("Z","").slice(0,16);
+    return s;
+  }
+
+  function renderForm(entity, mode){
+    state.currentEntity = entity;
+    state.currentFormMode = mode;
+    app.formFields.innerHTML = "";
+
+    const isCreate = mode === "create";
+    app.formTitle.textContent = isCreate ? `Add: ${entity.name}` : `Edit: ${entity.name}`;
+    app.formBadge.textContent = isCreate ? "CREATE" : "EDIT";
+    setBadge(app.formBadge, isCreate ? "ok" : "warn");
+
+    const row = state.selectedRowObj || {};
+
+    for (const f of (entity.fields || [])){
+      if (!f?.name) continue;
+      if (isPkField(entity, f.name)) continue;
+
+      const wrap = document.createElement("div");
+      wrap.className = "field";
+
+      const lab = document.createElement("label");
+      lab.textContent = f.name;
+      wrap.appendChild(lab);
+
+      const itype = inputTypeFor(f.type);
+
+      const input = document.createElement("input");
+      input.type = itype === "checkbox" ? "checkbox" : itype;
+      input.dataset.field = f.name;
+      input.dataset.ftype = itype;
+
+      const errId = `err_${f.name}`;
+      input.dataset.err = errId;
+
+      if (mode === "edit" && row){
+        const k1 = findKeyCI(row, f.name);
+        const k2 = findKeyCI(row, camelCase(f.name));
+        const key = k1 || k2;
+        const v = key ? row[key] : null;
+
+        if (itype === "checkbox") input.checked = !!v;
+        else if (itype === "number") input.value = (v === null || v === undefined) ? "" : String(v);
+        else if (itype === "datetime-local") input.value = toDatetimeLocal(v);
+        else input.value = (v === null || v === undefined) ? "" : String(v);
+      }
+
+      if (itype === "number") input.placeholder = "0";
+      else if (itype === "datetime-local") input.placeholder = "YYYY-MM-DDTHH:MM";
+      else input.placeholder = f.name;
+
+      const hint = document.createElement("div");
+      hint.className = "hint";
+      hint.textContent = hintFor(f);
+
+      const err = document.createElement("div");
+      err.className = "errtxt";
+      err.id = errId;
+
+      input.addEventListener("input", () => {
+        err.textContent = "";
+        if (itype === "number"){
+          const raw = (input.value || "").trim();
+          if (raw !== "" && Number.isNaN(Number(raw))) err.textContent = "Нужно число.";
+        }
+      });
+
+      wrap.appendChild(input);
+      wrap.appendChild(hint);
+      wrap.appendChild(err);
+
+      app.formFields.appendChild(wrap);
+    }
+  }
+
+  function buildPayloadFromForm(){
+    const obj = {};
+    let ok = true;
+
+    for (const err of app.formFields.querySelectorAll(".errtxt")) err.textContent = "";
+
+    for (const el of app.formFields.querySelectorAll("[data-field]")){
+      const name = el.dataset.field;
+      const type = el.dataset.ftype || "text";
+      const errId = el.dataset.err;
+      const errEl = errId ? document.getElementById(errId) : null;
+
+      let value;
+
+      if (type === "checkbox") value = !!el.checked;
+      else if (type === "number"){
+        const raw = (el.value || "").trim();
+        value = raw === "" ? null : Number(raw);
+        if (raw !== "" && Number.isNaN(value)){
+          ok = false;
+          if (errEl) errEl.textContent = "Нужно число.";
+          continue;
+        }
+      } else if (type === "datetime-local"){
+        const raw = (el.value || "").trim();
+        value = raw === "" ? null : raw;
+      } else {
+        value = (el.value || "");
+      }
+
+      obj[name] = value;
+    }
+
+    return { ok, obj };
+  }
+
+  function buildPatchOps(obj){
+    return Object.entries(obj||{}).map(([k,v]) => ({ op:"replace", path:"/"+k, value:v }));
+  }
+
+  async function submitForm(){
+    const entity = state.currentEntity;
+    const mode = state.currentFormMode;
+    if (!entity || !mode) return;
+
+    const { ok, obj } = buildPayloadFromForm();
+    if (!ok){
+      showMessage("warn","Validation","Исправьте ошибки в форме.");
+      return;
+    }
+
+    const route = normRoute(entity);
+
+    try{
+      setBusy(true,"Saving");
+
+      if (mode === "create"){
+        const url = apiUrl(`/${route}`);
+        await http("POST", url, obj, true);
+        closeModal(app.formModal);
+        showMessage("ok","Done","Created.");
+        await reload();
+      } else {
+        const id = state.selectedRowId;
+        if (id===null || id===undefined || id===""){
+          showMessage("warn","No selection","Select a card first.");
+          return;
+        }
+        const url = apiUrl(`/${route}/${id}`);
+        await http("PATCH", url, buildPatchOps(obj), true);
+        closeModal(app.formModal);
+        showMessage("ok","Done","Updated.");
+        await reload();
+      }
+    } catch(e){
+      showMessage("err","Save error", String(e?.message || e), e?._details || "");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteSelected(){
+    const entity = getSelectedEntity();
+    if (!entity) return;
+
+    const id = state.selectedRowId;
+    if (id===null || id===undefined || id===""){
+      showMessage("warn","No selection","Select a card first.");
+      return;
+    }
+
+    const ok = await confirmDialog("Delete", `Delete ${entity.name} with ID = ${id}?`);
+    if (!ok) return;
+
+    try{
+      setBusy(true,"Deleting");
+      const url = apiUrl(`/${normRoute(entity)}/${id}`);
+      await http("DELETE", url, undefined, false);
+      showMessage("ok","Done","Deleted.");
+      await reload();
+    } catch(e){
+      showMessage("err","Delete error", String(e?.message || e), e?._details || "");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // ===== Views =====
   function setActiveNav(btn){
     for (const b of [app.navTables, app.navLogs, app.navHistory]){
       if (!b) continue;
       b.classList.toggle("active", b === btn);
     }
   }
+
   function showView(viewId){
     for (const v of [app.viewTables, app.viewLogs, app.viewHistory]){
       if (!v) continue;
@@ -655,6 +915,7 @@
     }
   }
 
+  // ===== init: Login page =====
   function initLoginPage(){
     wireModalClose(shared.msgModal);
 
@@ -662,42 +923,36 @@
     shared.btnRegister?.addEventListener("click", () => doLogin(true));
     shared.btnGoApp?.addEventListener("click", () => goToApp());
 
-    shared.loginPass?.addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter") doLogin(false);
-    });
-    shared.loginUser?.addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter") doLogin(false);
-    });
+    shared.loginUser?.addEventListener("keydown", (ev) => { if (ev.key === "Enter") doLogin(false); });
+    shared.loginPass?.addEventListener("keydown", (ev) => { if (ev.key === "Enter") doLogin(false); });
 
-    // If already logged in, go to app
-    if (state.token) {
-      setTimeout(() => goToApp(), 50);
-    }
+    // already logged in -> app
+    if (state.token) setTimeout(() => goToApp(), 50);
   }
 
+  // ===== init: App page =====
   function initAppPage(){
-    // redirect to login if no token
-    if (!state.token) {
-      goToLogin();
-      return;
-    }
+    // must have token
+    if (!state.token) { goToLogin(); return; }
 
     wireModalClose(shared.msgModal);
-    wireModalClose(app.confirmModal);
-    wireModalClose(app.formModal);
     wireModalClose(app.tokenModal);
+    wireModalClose(app.formModal);
     wireModalClose(app.detailsModal);
+    wireModalClose(app.confirmModal);
 
-    // confirm
+    // confirm wiring
     app.btnConfirmYes?.addEventListener("click", () => {
       closeModal(app.confirmModal);
-      const r = state.confirmResolve; state.confirmResolve = null;
+      const r = state.confirmResolve;
+      state.confirmResolve = null;
       if (r) r(true);
     });
     app.confirmModal?.addEventListener("click", (ev) => {
       const t = ev.target;
       if (t && t.getAttribute && t.getAttribute("data-close") === "1") {
-        const r = state.confirmResolve; state.confirmResolve = null;
+        const r = state.confirmResolve;
+        state.confirmResolve = null;
         if (r) r(false);
       }
     });
@@ -711,7 +966,7 @@
       if (ok) doLogout();
     });
 
-    // token
+    // token modal
     app.btnTokenToggle?.addEventListener("click", () => openModal(app.tokenModal));
     app.btnTokenCopy?.addEventListener("click", async () => {
       try{
@@ -722,7 +977,7 @@
       }
     });
 
-    // login page link + logout
+    // login page + logout
     app.btnLoginPage?.addEventListener("click", () => goToLogin());
     app.btnLogout?.addEventListener("click", () => doLogout());
 
@@ -736,25 +991,38 @@
       }
     });
 
-    // logs clear
+    // logs
     app.btnLogsClear?.addEventListener("click", () => { if (app.log) app.log.textContent = ""; });
 
-    // entities
+    // entities + auth UI
     renderEntities();
     setAuthUI();
 
-    // page size default
     if (app.pageSize) app.pageSize.value = String(state.pageSize);
 
     // actions
     app.btnReload?.addEventListener("click", reload);
     app.btnOpenView?.addEventListener("click", openDetails);
 
-    // IMPORTANT: wire your existing create/edit/delete/submitForm handlers here (from your current file)
-    // app.btnOpenCreate -> open form create
-    // app.btnOpenEdit -> open form edit
-    // app.btnOpenDelete -> deleteSelected
-    // app.btnFormSubmit -> submitForm
+    app.btnOpenCreate?.addEventListener("click", () => {
+      const entity = getSelectedEntity();
+      if (!entity) return showMessage("warn","No entity","Choose entity first.");
+      state.selectedRowObj = null;
+      state.selectedRowId = null;
+      renderForm(entity, "create");
+      openModal(app.formModal);
+    });
+
+    app.btnOpenEdit?.addEventListener("click", () => {
+      const entity = getSelectedEntity();
+      if (!entity) return showMessage("warn","No entity","Choose entity first.");
+      if (!state.selectedRowObj) return showMessage("warn","No selection","Select a card first.");
+      renderForm(entity, "edit");
+      openModal(app.formModal);
+    });
+
+    app.btnOpenDelete?.addEventListener("click", deleteSelected);
+    app.btnFormSubmit?.addEventListener("click", submitForm);
 
     // pagination
     app.btnPrev?.addEventListener("click", () => gotoPage(state.page - 1));
@@ -774,13 +1042,14 @@
     app.searchQ?.addEventListener("keydown", (ev) => { if (ev.key==="Enter") searchLocal(); });
     app.searchQ?.addEventListener("input", () => searchLocal());
 
-    // entity reload
+    // entity change reload
     app.entitySelect?.addEventListener("change", () => reload());
 
     resetSelection();
     setTimeout(() => reload(), 50);
   }
 
+  // ===== Bootstrap =====
   if (page === "login") initLoginPage();
   else initAppPage();
 })();
