@@ -10,3 +10,6 @@ obj/
 # IDE
 .vscode/
 .idea/
+
+# User-specific files
+Images/
