@@ -17,6 +17,7 @@
 
       <nav class="nav">
         <button class="navbtn active" id="nav_tables" type="button">TABLES</button>
+        <button class="navbtn" id="nav_stats" type="button">STATS</button>
         <button class="navbtn" id="nav_logs" type="button">LOGS</button>
         <button class="navbtn" id="nav_history" type="button">HISTORY</button>
         <button class="navbtn" id="nav_exit" type="button">EXIT</button>
@@ -88,6 +89,48 @@
             <button class="btn btn-lite" id="btn_token_toggle" type="button">TOKEN</button>
             <button class="btn btn-lite" id="btn_login_page" type="button">LOGIN PAGE</button>
             <button class="btn btn-lite" id="btn_logout" type="button">LOGOUT</button>
+          </div>
+        </div>
+
+        <!-- STATS VIEW -->
+        <div class="view" id="view_stats">
+          <div class="row">
+            <div class="label">Статистика заявок</div>
+            <div class="spacer"></div>
+            <button class="btn btn-lite" id="btn_stats_reload" type="button">RELOAD STATS</button>
+          </div>
+
+          <div class="statsgrid" style="margin-top:12px;">
+            <div class="statcard">
+              <div class="statlabel">Всего заявок</div>
+              <div class="statvalue" id="stat_total">0</div>
+            </div>
+
+            <div class="statcard">
+              <div class="statlabel">Выполнено</div>
+              <div class="statvalue" id="stat_completed">0</div>
+            </div>
+
+            <div class="statcard">
+              <div class="statlabel">Среднее время ремонта</div>
+              <div class="statvalue" id="stat_avg_days">0 дн.</div>
+            </div>
+          </div>
+
+          <div class="stats2col" style="margin-top:14px;">
+            <div class="statpanel">
+              <div class="row">
+                <div class="label" style="font-size:22px;">По статусам</div>
+              </div>
+              <div id="stats_by_status" class="statslist" style="margin-top:10px;"></div>
+            </div>
+
+            <div class="statpanel">
+              <div class="row">
+                <div class="label" style="font-size:22px;">По типам техники</div>
+              </div>
+              <div id="stats_by_type" class="statslist" style="margin-top:10px;"></div>
+            </div>
           </div>
         </div>
 

@@ -286,3 +286,75 @@ input::placeholder{ color: rgba(255,255,255,.65); }
   justify-content:flex-end;
   gap:10px;
 }
+
+.statsgrid{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+@media (max-width: 900px){ .statsgrid{ grid-template-columns: 1fr; } }
+
+.statcard{
+  border: 2px solid rgba(0,0,0,.25);
+  border-radius: 16px;
+  background: rgba(255,255,255,.28);
+  padding: 16px;
+  box-shadow: 0 2px 0 rgba(0,0,0,.10);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+
+.statlabel{
+  font-size: 13px;
+  color: rgba(0,0,0,.68);
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.statvalue{
+  font-size: 32px;
+  font-weight: 900;
+  color: rgba(0,0,0,.90);
+}
+
+.stats2col{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 900px){ .stats2col{ grid-template-columns: 1fr; } }
+
+.statpanel{
+  border: 2px solid rgba(0,0,0,.25);
+  border-radius: 16px;
+  background: rgba(255,255,255,.24);
+  padding: 14px;
+}
+
+.statslist{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.statsrow{
+  display:grid;
+  grid-template-columns: 1fr 90px;
+  gap: 10px;
+  align-items:center;
+  border: 2px solid rgba(0,0,0,.12);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.35);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+
+.statsname{
+  font-weight: 700;
+  color: rgba(0,0,0,.85);
+}
+
+.statscount{
+  text-align:right;
+  font-weight: 900;
+  color: rgba(0,0,0,.75);
+}

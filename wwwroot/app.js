@@ -102,13 +102,22 @@
   const app = {
     // nav / views
     navTables: $("nav_tables"),
+    navStats: $("nav_stats"),
     navLogs: $("nav_logs"),
     navHistory: $("nav_history"),
     navExit: $("nav_exit"),
 
     viewTables: $("view_tables"),
+    viewStats: $("view_stats"),
     viewLogs: $("view_logs"),
     viewHistory: $("view_history"),
+
+    btnStatsReload: $("btn_stats_reload"),
+    statTotal: $("stat_total"),
+    statCompleted: $("stat_completed"),
+    statAvgDays: $("stat_avg_days"),
+    statsByStatus: $("stats_by_status"),
+    statsByType: $("stats_by_type"),
 
     // auth/token
     authStatus: $("auth_status"),
@@ -258,8 +267,8 @@
       : [
           app.btnReload, app.btnOpenCreate, app.btnOpenEdit, app.btnOpenDelete, app.btnOpenView,
           app.btnTokenToggle, app.btnTokenCopy, app.btnLogout, app.btnLoginPage,
-          app.btnFormSubmit, app.btnLogsClear,
-          app.navTables, app.navLogs, app.navHistory, app.navExit,
+          app.btnFormSubmit, app.btnLogsClear, app.btnStatsReload,
+          app.navTables, app.navStats, app.navLogs, app.navHistory, app.navExit,
           app.btnPrev, app.btnNext, app.btnPageGo, app.btnGotoId, app.btnPageApply,
           app.btnConfirmYes, app.btnDetailsCopy
         ].filter(Boolean);
@@ -332,7 +341,7 @@
 
     try{
       setBusy(true, "Auth");
-      const url = apiUrl(isRegister ? "/api/Auth/register" : "/api/Auth/login");
+      const url = apiUrl(isRegister ? "/Auth/register" : "/Auth/login");
       const res = await http("POST", url, { username: user, password: pass }, true);
 
       const token =
@@ -364,10 +373,46 @@
     }
   }
 
+  function parseJwt(token){
+    try{
+      if (!token) return null;
+      const parts = token.split(".");
+      if (parts.length < 2) return null;
+      const payload = parts[1]
+        .replace(/-/g, "+")
+        .replace(/_/g, "/");
+      const json = decodeURIComponent(
+        atob(payload)
+          .split("")
+          .map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      return JSON.parse(json);
+    } catch {
+      return null;
+    }
+  }
+
+  function getUserRole(){
+    const p = parseJwt(state.token);
+    if (!p) return "";
+
+    return p["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]
+        || p["role"]
+        || p["Role"]
+        || "";
+  }
+
+  function canViewStats(){
+    const role = getUserRole();
+    return ["Менеджер", "Оператор", "Мастер"].includes(role);
+  }
+
   // ===== App helpers =====
   function setAuthUI(){
     if (!app.authStatus) return;
-    app.authStatus.textContent = state.token ? "ADMIN" : "Not authorized";
+    const role = getUserRole();
+    app.authStatus.textContent = state.token ? (role || "Authorized") : "Not authorized";
     if (app.tokenBox) app.tokenBox.textContent = state.token || "—";
   }
 
@@ -687,6 +732,60 @@
     openModal(app.detailsModal);
   }
 
+  function renderStatsList(container, items){
+    if (!container) return;
+    container.innerHTML = "";
+
+    const arr = Array.isArray(items) ? items : [];
+    if (arr.length === 0){
+      const row = document.createElement("div");
+      row.className = "statsrow";
+      row.innerHTML = `
+        <div class="statsname">Нет данных</div>
+        <div class="statscount">0</div>
+      `;
+      container.appendChild(row);
+      return;
+    }
+
+    for (const item of arr){
+      const row = document.createElement("div");
+      row.className = "statsrow";
+      row.innerHTML = `
+        <div class="statsname">${escapeHtml(item?.name ?? "")}</div>
+        <div class="statscount">${escapeHtml(String(item?.count ?? 0))}</div>
+      `;
+      container.appendChild(row);
+    }
+  }
+
+  async function loadStats(){
+    if (!canViewStats()){
+      showMessage("warn", "Нет доступа", "У вас нет прав для просмотра статистики.");
+      return;
+    }
+
+    try{
+      setBusy(true, "Loading stats");
+      const url = apiUrl("/Request/stats");
+      const res = await http("GET", url, undefined, true);
+
+      if (app.statTotal) app.statTotal.textContent = String(res?.totalCount ?? 0);
+      if (app.statCompleted) app.statCompleted.textContent = String(res?.completedCount ?? 0);
+      if (app.statAvgDays) app.statAvgDays.textContent = `${res?.averageRepairDays ?? 0} дн.`;
+
+      renderStatsList(app.statsByStatus, res?.byStatus || []);
+      renderStatsList(app.statsByType, res?.byClimateTechType || []);
+
+      log(`GET ${url} OK`);
+    } catch(e){
+      showMessage("err", "Stats error", String(e?.message || e), e?._details || "");
+      log(`GET STATS FAIL: ${String(e?.message || e)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   // ===== Forms (NO JSON) =====
   function isPkField(entity, fieldName){
     return entity?.pk && fieldName && fieldName.toLowerCase() === entity.pk.toLowerCase();
@@ -902,14 +1001,14 @@
 
   // ===== Views =====
   function setActiveNav(btn){
-    for (const b of [app.navTables, app.navLogs, app.navHistory]){
+    for (const b of [app.navTables, app.navStats, app.navLogs, app.navHistory]){
       if (!b) continue;
       b.classList.toggle("active", b === btn);
     }
   }
 
   function showView(viewId){
-    for (const v of [app.viewTables, app.viewLogs, app.viewHistory]){
+    for (const v of [app.viewTables, app.viewStats, app.viewLogs, app.viewHistory]){
       if (!v) continue;
       v.classList.toggle("active", v.id === viewId);
     }
@@ -959,6 +1058,15 @@
 
     // nav
     app.navTables?.addEventListener("click", () => { setActiveNav(app.navTables); showView("view_tables"); });
+    app.navStats?.addEventListener("click", async () => {
+      if (!canViewStats()){
+        showMessage("warn", "Нет доступа", "Статистика доступна только ролям Менеджер, Оператор и Мастер.");
+        return;
+      }
+      setActiveNav(app.navStats);
+      showView("view_stats");
+      await loadStats();
+    });
     app.navLogs?.addEventListener("click", () => { setActiveNav(app.navLogs); showView("view_logs"); });
     app.navHistory?.addEventListener("click", () => { setActiveNav(app.navHistory); showView("view_history"); });
     app.navExit?.addEventListener("click", async () => {
@@ -993,10 +1101,12 @@
 
     // logs
     app.btnLogsClear?.addEventListener("click", () => { if (app.log) app.log.textContent = ""; });
+    app.btnStatsReload?.addEventListener("click", loadStats);
 
     // entities + auth UI
     renderEntities();
     setAuthUI();
+    if (app.navStats) app.navStats.style.display = canViewStats() ? "" : "none";
 
     if (app.pageSize) app.pageSize.value = String(state.pageSize);
 
