@@ -8,13 +8,12 @@ using Microsoft.AspNetCore.Authorization;
 using UP_CONDI_V5.Data;
 using UP_CONDI_V5.Models;
 using UP_CONDI_V5.Dtos;
+using UP_CONDI_V5.Constants;
 
 namespace UP_CONDI_V5.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-
-[Authorize]
 
 public class CommentController : ControllerBase
 {
@@ -23,6 +22,7 @@ public class CommentController : ControllerBase
     public CommentController(ApplicationDbContext db) => _db = db;
 
     [HttpGet]
+    [Authorize(Roles = Roles.ManagerOperatorOrMaster)]
     public async Task<IActionResult> GetAll()
     {
         var items = await _db.Set<Comment>()
@@ -45,6 +45,7 @@ public class CommentController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [Authorize(Roles = Roles.ManagerOperatorOrMaster)]
     public async Task<IActionResult> GetById(int id)
     {
         var item = await _db.Set<Comment>()
@@ -68,6 +69,7 @@ public class CommentController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = Roles.ManagerOperatorOrMaster)]
     public async Task<IActionResult> Create([FromBody] CommentCreateDto dto)
     {
         var entity = new Comment
@@ -107,6 +109,7 @@ public class CommentController : ControllerBase
     }
 
     [HttpPatch("{id:int}")]
+    [Authorize(Roles = Roles.ManagerOperatorOrMaster)]
     public async Task<IActionResult> Patch(int id, [FromBody] JsonPatchDocument<CommentUpdateDto> patch)
     {
         if (patch is null) return BadRequest("Patch document is required.");
@@ -169,6 +172,7 @@ public class CommentController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = Roles.Operator)]
     public async Task<IActionResult> Delete(int id)
     {
         var entity = await _db.Set<Comment>().FirstOrDefaultAsync(x => x.CommentId == id);

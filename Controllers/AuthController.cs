@@ -1,6 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using UP_CONDI_V5.Constants;
 using UP_CONDI_V5.Data;
 using UP_CONDI_V5.Models;
 using UP_CONDI_V5.Services;
@@ -22,8 +23,7 @@ public class AuthController : ControllerBase
         _jwt = jwt;
     }
 
-    // API contract stays stable regardless of DB column naming
-    public sealed record RegisterRequest(string Username, string Password, string? Role);
+    public sealed record RegisterRequest(string Username, string Password, string? Role, string? Fio, string? Phone);
     public sealed record LoginRequest(string Username, string Password);
 
     [HttpPost("register")]
@@ -37,23 +37,29 @@ public class AuthController : ControllerBase
         var exists = await _db.Set<User>()
             .AnyAsync(x => x.Login == username);
 
-        if (exists) return Conflict("User already exists.");
+        if (exists)
+            return Conflict("User already exists.");
+
+        var role = NormalizeRole(req.Role);
 
         var user = new User
         {
             Login = username,
-
-            // WARNING (school-mode): storing plaintext password.
-            // If you want hashing, rename column to password_hash (or adjust generator) and re-scaffold.
             Password = req.Password,
-
-            Type = string.IsNullOrWhiteSpace(req.Role) ? "User" : req.Role!.Trim()
+            Type = role,
+            Fio = string.IsNullOrWhiteSpace(req.Fio) ? username : req.Fio.Trim(),
+            Phone = string.IsNullOrWhiteSpace(req.Phone) ? null : req.Phone.Trim()
         };
 
         _db.Set<User>().Add(user);
         await _db.SaveChangesAsync();
 
-        return Ok(new { id = user.UserId, username = user.Login, role = user.Type });
+        return Ok(new
+        {
+            id = user.UserId,
+            username = user.Login,
+            role = user.Type
+        });
     }
 
     [HttpPost("login")]
@@ -67,18 +73,39 @@ public class AuthController : ControllerBase
         var user = await _db.Set<User>()
             .FirstOrDefaultAsync(x => x.Login == username);
 
-        if (user is null) return Unauthorized();
-
+        if (user is null)
+            return Unauthorized();
 
         if (!string.Equals(req.Password, user.Password, StringComparison.Ordinal))
             return Unauthorized();
 
-
         var token = _jwt.CreateToken(
             userId: user.UserId,
-            username: user.Login,
+            username: user.Login ?? "",
             role: user.Type);
 
-        return Ok(new { token });
+        return Ok(new
+        {
+            token,
+            user = new
+            {
+                id = user.UserId,
+                login = user.Login,
+                fio = user.Fio,
+                role = user.Type
+            }
+        });
+    }
+
+    private static string NormalizeRole(string? role)
+    {
+        return role?.Trim() switch
+        {
+            Roles.Manager => Roles.Manager,
+            Roles.Master => Roles.Master,
+            Roles.Operator => Roles.Operator,
+            Roles.Client => Roles.Client,
+            _ => Roles.Client
+        };
     }
 }

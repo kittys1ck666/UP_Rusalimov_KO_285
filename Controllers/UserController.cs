@@ -8,14 +8,13 @@ using Microsoft.AspNetCore.Authorization;
 using UP_CONDI_V5.Data;
 using UP_CONDI_V5.Models;
 using UP_CONDI_V5.Dtos;
+using UP_CONDI_V5.Constants;
 
 namespace UP_CONDI_V5.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-
-[Authorize]
-
+[Authorize(Roles = Roles.ManagerOrOperator)]
 public class UserController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
@@ -76,6 +75,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = Roles.Operator)]
     public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
     {
         var entity = new User
@@ -209,6 +209,7 @@ public class UserController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = Roles.Operator)]
     public async Task<IActionResult> Delete(int id)
     {
         var entity = await _db.Set<User>().FirstOrDefaultAsync(x => x.UserId == id);
