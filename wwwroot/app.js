@@ -1,93 +1,64 @@
 (() => {
   "use strict";
 
-  // ====== Generated entities list (Scriban) ======
   const ENTITIES = [
-
     {
       name: "Comment",
       route: "Comment",
       pk: "CommentId",
       idType: "int",
       fields: [
-
         { name: "CommentId", type: "int" },
-
         { name: "Message", type: "string" },
-
         { name: "MasterId", type: "int?" },
-
         { name: "RequestId", type: "int" }
-
       ]
     },
-
     {
       name: "Request",
       route: "Request",
       pk: "RequestId",
       idType: "int",
       fields: [
-
         { name: "RequestId", type: "int" },
-
         { name: "StartDate", type: "DateOnly?" },
-
         { name: "ClimateTechType", type: "string" },
-
         { name: "ClimateTechModel", type: "string" },
-
         { name: "ProblemDescription", type: "string" },
-
         { name: "RequestStatus", type: "string" },
-
         { name: "CompletionDate", type: "DateOnly?" },
-
         { name: "RepairParts", type: "string" },
-
         { name: "MasterId", type: "int?" },
-
         { name: "ClientId", type: "int" }
-
       ]
     },
-
     {
       name: "User",
       route: "User",
       pk: "UserId",
       idType: "int",
       fields: [
-
         { name: "UserId", type: "int" },
-
         { name: "Fio", type: "string" },
-
         { name: "Phone", type: "string" },
-
         { name: "Login", type: "string" },
-
         { name: "Password", type: "string" },
-
         { name: "Type", type: "string" }
-
       ]
     }
-
   ];
+
+  const QUALITY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdhZcExx6LSIXxk0ub55mSu-WIh23WYdGG9HY5EZhLDo7P8eA/viewform?usp=sf_link";
 
   const $ = (id) => document.getElementById(id);
   const page = document.body.getAttribute("data-page") || "app";
 
-  // Shared (login + app)
   const shared = {
     msgModal: $("msg_modal"),
     msgKind: $("msg_kind"),
     msgTitle: $("msg_title"),
     msgBody: $("msg_body"),
     msgDetails: $("msg_details"),
-
-    // login page
     loginUser: $("login_user"),
     loginPass: $("login_pass"),
     btnDoLogin: $("btn_do_login"),
@@ -97,9 +68,7 @@
     errPass: $("err_pass"),
   };
 
-  // App page elements (index.html)
   const app = {
-    // nav / views
     navTables: $("nav_tables"),
     navStats: $("nav_stats"),
     navLogs: $("nav_logs"),
@@ -110,6 +79,54 @@
     viewStats: $("view_stats"),
     viewLogs: $("view_logs"),
     viewHistory: $("view_history"),
+
+    authStatus: $("auth_status"),
+    btnTokenToggle: $("btn_token_toggle"),
+    btnTokenCopy: $("btn_token_copy"),
+    tokenBox: $("token_box"),
+    tokenModal: $("token_modal"),
+    btnLoginPage: $("btn_login_page"),
+    btnLogout: $("btn_logout"),
+
+    entitySelect: $("entity_select"),
+    searchQ: $("search_q"),
+    btnReload: $("btn_reload"),
+    btnOpenCreate: $("btn_open_create"),
+    btnOpenEdit: $("btn_open_edit"),
+    btnOpenDelete: $("btn_open_delete"),
+    btnOpenView: $("btn_open_view"),
+    searchCount: $("search_count"),
+    selectedId: $("selected_id"),
+    pageLabel: $("page_label"),
+
+    btnPrev: $("btn_page_prev"),
+    btnNext: $("btn_page_next"),
+    pageInput: $("page_input"),
+    btnPageGo: $("btn_page_go"),
+    gotoId: $("goto_id"),
+    btnGotoId: $("btn_goto_id"),
+    pageSize: $("page_size"),
+    btnPageApply: $("btn_page_apply"),
+
+    cardsGrid: $("cards_grid"),
+    log: $("log"),
+    btnLogsClear: $("btn_logs_clear"),
+
+    formModal: $("form_modal"),
+    formBadge: $("form_badge"),
+    formTitle: $("form_title"),
+    formFields: $("form_fields"),
+    btnFormSubmit: $("btn_form_submit"),
+
+    confirmModal: $("confirm_modal"),
+    confirmTitle: $("confirm_title"),
+    confirmBody: $("confirm_body"),
+    btnConfirmYes: $("btn_confirm_yes"),
+
+    detailsModal: $("details_modal"),
+    detailsTitle: $("details_title"),
+    detailsBody: $("details_body"),
+    btnDetailsCopy: $("btn_details_copy"),
 
     btnStatsReload: $("btn_stats_reload"),
     statTotal: $("stat_total"),
@@ -123,93 +140,33 @@
     btnOpenQualityForm: $("btn_open_quality_form"),
     btnCopyQualityLink: $("btn_copy_quality_link"),
 
-    // auth/token
-    authStatus: $("auth_status"),
-    btnTokenToggle: $("btn_token_toggle"),
-    btnTokenCopy: $("btn_token_copy"),
-    tokenBox: $("token_box"),
-    tokenModal: $("token_modal"),
-
-    btnLoginPage: $("btn_login_page"),
-    btnLogout: $("btn_logout"),
-
-    // main controls
-    entitySelect: $("entity_select"),
-    searchQ: $("search_q"),
-    btnReload: $("btn_reload"),
-
-    btnOpenCreate: $("btn_open_create"),
-    btnOpenEdit: $("btn_open_edit"),
-    btnOpenDelete: $("btn_open_delete"),
-    btnOpenView: $("btn_open_view"),
-
-    searchCount: $("search_count"),
-    selectedId: $("selected_id"),
-    pageLabel: $("page_label"),
-
-    // paging
-    btnPrev: $("btn_page_prev"),
-    btnNext: $("btn_page_next"),
-    pageInput: $("page_input"),
-    btnPageGo: $("btn_page_go"),
-    gotoId: $("goto_id"),
-    btnGotoId: $("btn_goto_id"),
-    pageSize: $("page_size"),
-    btnPageApply: $("btn_page_apply"),
-
-    // cards
-    cardsGrid: $("cards_grid"),
-
-    // logs
-    log: $("log"),
-    btnLogsClear: $("btn_logs_clear"),
-
-    // form modal
-    formModal: $("form_modal"),
-    formBadge: $("form_badge"),
-    formTitle: $("form_title"),
-    formFields: $("form_fields"),
-    btnFormSubmit: $("btn_form_submit"),
-
-    // confirm modal
-    confirmModal: $("confirm_modal"),
-    confirmTitle: $("confirm_title"),
-    confirmBody: $("confirm_body"),
-    btnConfirmYes: $("btn_confirm_yes"),
-
-    // details modal
-    detailsModal: $("details_modal"),
-    detailsTitle: $("details_title"),
-    detailsBody: $("details_body"),
-    btnDetailsCopy: $("btn_details_copy"),
+    requestManagerPanel: $("request_manager_panel"),
+    managerCurrentRequest: $("manager_current_request"),
+    managerMasterId: $("manager_master_id"),
+    btnAssignMaster: $("btn_assign_master"),
+    managerStatus: $("manager_status"),
+    btnChangeStatus: $("btn_change_status"),
+    managerCompletionDate: $("manager_completion_date"),
+    managerComment: $("manager_comment"),
+    btnExtendDeadline: $("btn_extend_deadline"),
   };
 
   const state = {
     token: localStorage.getItem("pggen_token") || "",
     apiBase: "/api",
-
     selectedRowId: null,
     selectedRowObj: null,
-
-    allRows: [],     // full sorted list
-    viewRows: [],    // filtered list
-    pageRows: [],    // current page
-
+    allRows: [],
+    viewRows: [],
+    pageRows: [],
     isBusy: false,
-
     page: 1,
     pageSize: 12,
-
-    currentFormMode: null, // create/edit
+    currentFormMode: null,
     currentEntity: null,
-
     confirmResolve: null,
   };
 
-  // === CHANGE THIS LINK TO YOUR REAL QUALITY SURVEY FORM ===
-  const QUALITY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdhZcExx6LSIXxk0ub55mSu-WIh23WYdGG9HY5EZhLDo7P8eA/viewform";
-
-  // ===== Modal helpers =====
   function openModal(el){ if (el) el.classList.add("open"); }
   function closeModal(el){ if (el) el.classList.remove("open"); }
 
@@ -258,17 +215,14 @@
     });
   }
 
-  // ===== Logging =====
   function log(line) {
     if (!app.log) return;
     const ts = new Date().toISOString();
     app.log.textContent = `[${ts}] ${line}\n` + app.log.textContent;
   }
 
-  // ===== Busy =====
   function setBusy(isBusy, label) {
     state.isBusy = !!isBusy;
-
     const btns = page === "login"
       ? [shared.btnDoLogin, shared.btnRegister, shared.btnGoApp].filter(Boolean)
       : [
@@ -277,14 +231,15 @@
           app.btnFormSubmit, app.btnLogsClear, app.btnStatsReload,
           app.navTables, app.navStats, app.navLogs, app.navHistory, app.navExit,
           app.btnPrev, app.btnNext, app.btnPageGo, app.btnGotoId, app.btnPageApply,
-          app.btnConfirmYes, app.btnDetailsCopy
+          app.btnConfirmYes, app.btnDetailsCopy,
+          app.btnAssignMaster, app.btnChangeStatus, app.btnExtendDeadline,
+          app.btnOpenQualityForm, app.btnCopyQualityLink
         ].filter(Boolean);
 
     for (const b of btns) b.disabled = state.isBusy;
     if (label && page !== "login") log(label + (state.isBusy ? "..." : " OK"));
   }
 
-  // ===== HTTP =====
   function normalizeApiBase(apiBase){
     if (!apiBase) return "/api";
     let b = apiBase.trim();
@@ -304,17 +259,13 @@
   async function http(method, url, body, expectJson = true){
     const headers = {};
     if (state.token) headers["Authorization"] = `Bearer ${state.token}`;
-
     const init = { method, headers };
-
     if (body !== undefined){
       headers["Content-Type"] = "application/json";
       init.body = JSON.stringify(body);
     }
-
     const res = await fetch(url, init);
     const text = await res.text();
-
     if (!res.ok){
       let msg = `${res.status} ${res.statusText}`;
       if (text) msg += ` | ${text}`;
@@ -323,25 +274,20 @@
       err._status = res.status;
       throw err;
     }
-
     if (!expectJson) return text;
     if (!text) return null;
-
     try { return JSON.parse(text); } catch { return text; }
   }
 
-  // ===== Redirects =====
   function goToLogin() { window.location.href = "login.html"; }
   function goToApp() { window.location.href = "index.html"; }
 
-  // ===== Auth =====
   async function doLogin(isRegister){
     const user = (shared.loginUser?.value || "").trim();
     const pass = (shared.loginPass?.value || "").trim();
 
     if (shared.errLogin) shared.errLogin.textContent = "";
     if (shared.errPass) shared.errPass.textContent = "";
-
     if (!user) { if (shared.errLogin) shared.errLogin.textContent = "Введите логин."; }
     if (!pass) { if (shared.errPass) shared.errPass.textContent = "Введите пароль."; }
     if (!user || !pass) return;
@@ -350,18 +296,14 @@
       setBusy(true, "Auth");
       const url = apiUrl(isRegister ? "/Auth/register" : "/Auth/login");
       const res = await http("POST", url, { username: user, password: pass }, true);
-
       const token =
         res?.token ?? res?.Token ??
         res?.accessToken ?? res?.AccessToken ??
         res?.jwt ?? res?.Jwt ??
         (typeof res === "string" ? res : "");
-
       if (!token) throw new Error("Token not found in API response.");
-
       state.token = token;
       localStorage.setItem("pggen_token", token);
-
       showMessage("ok", "Success", isRegister ? "Registered + logged in." : "Logged in.");
       setTimeout(() => goToApp(), 250);
     } catch(e){
@@ -385,50 +327,26 @@
       if (!token) return null;
       const parts = token.split(".");
       if (parts.length < 2) return null;
-      const payload = parts[1]
-        .replace(/-/g, "+")
-        .replace(/_/g, "/");
-      const json = decodeURIComponent(
-        atob(payload)
-          .split("")
-          .map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-          .join("")
-      );
+      const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+      const json = decodeURIComponent(atob(payload).split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join(""));
       return JSON.parse(json);
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   }
 
   function getUserRole(){
     const p = parseJwt(state.token);
     if (!p) return "";
-
-    return p["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]
-        || p["role"]
-        || p["Role"]
-        || "";
+    return p["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || p["role"] || p["Role"] || "";
   }
 
   function canViewStats(){
-    const role = getUserRole();
-    return ["Менеджер", "Оператор", "Мастер"].includes(role);
+    return ["Менеджер", "Оператор", "Мастер"].includes(getUserRole());
   }
 
-  function renderQualityQr(){
-    const link = QUALITY_FORM_URL;
-
-    if (app.qualityFormLink) {
-      app.qualityFormLink.textContent = link;
-    }
-
-    if (app.qualityQrImg) {
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(link)}`;
-      app.qualityQrImg.src = qrUrl;
-    }
+  function canManageRequests(){
+    return ["Менеджер", "Оператор"].includes(getUserRole());
   }
 
-  // ===== App helpers =====
   function setAuthUI(){
     if (!app.authStatus) return;
     const role = getUserRole();
@@ -453,7 +371,6 @@
   }
 
   function camelCase(s){ return !s ? s : (s.length===1 ? s.toLowerCase() : s[0].toLowerCase()+s.slice(1)); }
-
   function findKeyCI(obj, wanted){
     if (!obj || !wanted) return null;
     const w = wanted.toLowerCase();
@@ -462,19 +379,15 @@
 
   function getRowId(row, entity){
     if (!row) return null;
-
     const pk = entity?.pk;
     if (pk){
       const k1 = findKeyCI(row, pk);
       if (k1) return row[k1];
-
       const k2 = findKeyCI(row, camelCase(pk));
       if (k2) return row[k2];
     }
-
     const k3 = findKeyCI(row, "id");
     if (k3) return row[k3];
-
     const last = Object.keys(row).find(k => k.toLowerCase().endsWith("id"));
     return last ? row[last] : null;
   }
@@ -484,10 +397,8 @@
   function compareIds(a, b, entity){
     const av = getRowId(a, entity);
     const bv = getRowId(b, entity);
-
     const an = (typeof av === "number") ? av : (av != null && av !== "" && !isNaN(Number(av)) ? Number(av) : null);
     const bn = (typeof bv === "number") ? bv : (bv != null && bv !== "" && !isNaN(Number(bv)) ? Number(bv) : null);
-
     if (an != null && bn != null) return an - bn;
     return String(av ?? "").localeCompare(String(bv ?? ""));
   }
@@ -495,11 +406,11 @@
   function resetSelection(){
     state.selectedRowId = null;
     state.selectedRowObj = null;
-
     if (app.selectedId) app.selectedId.textContent = "—";
     if (app.btnOpenEdit) app.btnOpenEdit.disabled = true;
     if (app.btnOpenDelete) app.btnOpenDelete.disabled = true;
     if (app.btnOpenView) app.btnOpenView.disabled = true;
+    syncRequestManagerPanel();
   }
 
   function safeText(v){
@@ -522,26 +433,21 @@
     const total = state.viewRows.length;
     const pageSize = Math.max(1, state.pageSize);
     const pages = Math.max(1, Math.ceil(total / pageSize));
-
     if (state.page < 1) state.page = 1;
     if (state.page > pages) state.page = pages;
-
     const start = (state.page - 1) * pageSize;
     state.pageRows = state.viewRows.slice(start, start + pageSize);
-
     if (app.pageLabel) app.pageLabel.textContent = `${state.page} / ${pages}`;
     if (app.searchCount) app.searchCount.textContent = String(total);
-
     if (app.btnPrev) app.btnPrev.disabled = (state.page <= 1) || state.isBusy;
     if (app.btnNext) app.btnNext.disabled = (state.page >= pages) || state.isBusy;
   }
 
   function renderCards(entity){
     resetSelection();
+    if (!app.cardsGrid) return;
     app.cardsGrid.innerHTML = "";
-
     const rows = state.pageRows;
-
     if (!Array.isArray(rows) || rows.length === 0){
       const div = document.createElement("div");
       div.className = "carditem";
@@ -551,51 +457,40 @@
     }
 
     const fields = (entity.fields || []).map(f => f.name);
-
     for (const r of rows){
       const id = getRowId(r, entity);
-
       const card = document.createElement("div");
       card.className = "carditem";
       card.dataset.id = (id === null || id === undefined) ? "" : String(id);
 
       const title = document.createElement("div");
       title.className = "cardtitle";
-
       const left = document.createElement("div");
       left.textContent = pickCardTitle(r, entity);
-
       const right = document.createElement("div");
       right.style.fontWeight = "900";
       right.style.color = "rgba(0,0,0,.65)";
       right.textContent = id === null || id === undefined ? "" : `#${id}`;
-
       title.appendChild(left);
       title.appendChild(right);
 
       const kv = document.createElement("div");
       kv.className = "cardkv";
-
       let shown = 0;
       for (const name of fields){
         if (shown >= 6) break;
         const key = findKeyCI(r, name) || findKeyCI(r, camelCase(name));
         if (!key) continue;
-
         const value = r[key];
         if (value && typeof value === "object") continue;
-
         const k = document.createElement("div");
         k.className = "k";
         k.textContent = name;
-
         const v = document.createElement("div");
         v.className = "v";
         v.textContent = safeText(value);
-
         kv.appendChild(k);
         kv.appendChild(v);
-
         shown++;
       }
 
@@ -607,16 +502,15 @@
         card.classList.add("selected");
         state.selectedRowId = id;
         state.selectedRowObj = r;
-        app.selectedId.textContent = id === null || id === undefined ? "—" : String(id);
-
+        if (app.selectedId) app.selectedId.textContent = id === null || id === undefined ? "—" : String(id);
         if (app.btnOpenEdit) app.btnOpenEdit.disabled = false;
         if (app.btnOpenDelete) app.btnOpenDelete.disabled = false;
         if (app.btnOpenView) app.btnOpenView.disabled = false;
+        syncRequestManagerPanel();
       };
 
       card.addEventListener("click", selectCard);
       card.addEventListener("dblclick", () => { selectCard(); openDetails(); });
-
       app.cardsGrid.appendChild(card);
     }
   }
@@ -634,37 +528,27 @@
   function setViewRows(entity, rows){
     state.allRows = Array.isArray(rows) ? rows.slice() : [];
     state.allRows.sort((a,b) => compareIds(a,b,entity));
-
     const q = (app.searchQ?.value || "").trim();
-    state.viewRows = q ? localFilter(state.allRows, q) : state.allRows.slice();
-
+    state.viewRows = entity?.name === "Request" ? state.allRows.slice() : (q ? localFilter(state.allRows, q) : state.allRows.slice());
     state.page = 1;
     applyPagination();
     renderCards(entity);
+    syncRequestManagerPanel();
   }
 
   async function reload(){
     const entity = getSelectedEntity();
     if (!entity) return;
-
     try{
       setBusy(true,"Loading");
       let url = apiUrl(`/${normRoute(entity)}`);
-
       const q = (app.searchQ?.value || "").trim();
-
       if (entity.name === "Request" && q) {
         const params = new URLSearchParams();
-
-        if (!isNaN(Number(q))) {
-          params.set("requestId", q);
-        } else {
-          params.set("status", q);
-        }
-
+        if (!isNaN(Number(q))) params.set("requestId", q);
+        else params.set("status", q);
         url += `?${params.toString()}`;
       }
-
       const rows = await http("GET", url, undefined, true);
       const list = Array.isArray(rows) ? rows : (rows || []);
       setViewRows(entity, list);
@@ -680,6 +564,10 @@
   function searchLocal(){
     const entity = getSelectedEntity();
     if (!entity) return;
+    if (entity.name === "Request") {
+      reload();
+      return;
+    }
     state.viewRows = localFilter(state.allRows, (app.searchQ?.value||""));
     state.page = 1;
     applyPagination();
@@ -698,31 +586,25 @@
   function gotoId(){
     const entity = getSelectedEntity();
     if (!entity) return;
-
     const raw = (app.gotoId?.value || "").trim();
     if (!raw){
       showMessage("warn","Go to ID","Введите ID.");
       return;
     }
-
     const target = raw.toLowerCase();
     let idx = -1;
-
     for (let i=0;i<state.viewRows.length;i++){
       const id = getRowId(state.viewRows[i], entity);
       if (id === null || id === undefined) continue;
       if (String(id).toLowerCase() === target){ idx = i; break; }
     }
-
     if (idx < 0){
       showMessage("warn","Not found",`ID ${raw} не найден в текущем списке.`);
       return;
     }
-
     const pageSize = Math.max(1,state.pageSize);
     const pageNum = Math.floor(idx / pageSize) + 1;
     gotoPage(pageNum);
-
     setTimeout(() => {
       const card = app.cardsGrid.querySelector(`.carditem[data-id="${raw}"]`);
       if (card) card.click();
@@ -745,14 +627,10 @@
       showMessage("warn","No selection","Select a card first.");
       return;
     }
-
     const id = getRowId(state.selectedRowObj, entity);
     app.detailsTitle.textContent = `${entity.name} #${id ?? "?"}`;
-
     const row = state.selectedRowObj;
-    const keys = Object.keys(row || {});
-    keys.sort((a,b) => a.localeCompare(b));
-
+    const keys = Object.keys(row || {}).sort((a,b) => a.localeCompare(b));
     const html = [];
     html.push(`<div style="display:grid;grid-template-columns:200px 1fr;gap:8px 12px;">`);
     for (const k of keys){
@@ -762,7 +640,6 @@
       html.push(`<div style="white-space:pre-wrap;word-break:break-word;">${escapeHtml(vv)}</div>`);
     }
     html.push(`</div>`);
-
     app.detailsBody.innerHTML = html.join("");
     openModal(app.detailsModal);
   }
@@ -770,26 +647,18 @@
   function renderStatsList(container, items){
     if (!container) return;
     container.innerHTML = "";
-
     const arr = Array.isArray(items) ? items : [];
     if (arr.length === 0){
       const row = document.createElement("div");
       row.className = "statsrow";
-      row.innerHTML = `
-        <div class="statsname">Нет данных</div>
-        <div class="statscount">0</div>
-      `;
+      row.innerHTML = `<div class="statsname">Нет данных</div><div class="statscount">0</div>`;
       container.appendChild(row);
       return;
     }
-
     for (const item of arr){
       const row = document.createElement("div");
       row.className = "statsrow";
-      row.innerHTML = `
-        <div class="statsname">${escapeHtml(item?.name ?? "")}</div>
-        <div class="statscount">${escapeHtml(String(item?.count ?? 0))}</div>
-      `;
+      row.innerHTML = `<div class="statsname">${escapeHtml(item?.name ?? "")}</div><div class="statscount">${escapeHtml(String(item?.count ?? 0))}</div>`;
       container.appendChild(row);
     }
   }
@@ -799,19 +668,15 @@
       showMessage("warn", "Нет доступа", "У вас нет прав для просмотра статистики.");
       return;
     }
-
     try{
       setBusy(true, "Loading stats");
       const url = apiUrl("/Request/stats");
       const res = await http("GET", url, undefined, true);
-
       if (app.statTotal) app.statTotal.textContent = String(res?.totalCount ?? 0);
       if (app.statCompleted) app.statCompleted.textContent = String(res?.completedCount ?? 0);
       if (app.statAvgDays) app.statAvgDays.textContent = `${res?.averageRepairDays ?? 0} дн.`;
-
       renderStatsList(app.statsByStatus, res?.byStatus || []);
       renderStatsList(app.statsByType, res?.byClimateTechType || []);
-
       log(`GET ${url} OK`);
     } catch(e){
       showMessage("err", "Stats error", String(e?.message || e), e?._details || "");
@@ -821,7 +686,76 @@
     }
   }
 
-  // ===== Forms (NO JSON) =====
+  function renderQualityQr(){
+    const link = QUALITY_FORM_URL;
+    if (app.qualityFormLink) app.qualityFormLink.textContent = link;
+    if (app.qualityQrImg) app.qualityQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(link)}`;
+  }
+
+  function syncRequestManagerPanel(){
+    if (!app.requestManagerPanel) return;
+    const entity = getSelectedEntity();
+    const visible = entity?.name === "Request" && canManageRequests();
+    app.requestManagerPanel.style.display = visible ? "block" : "none";
+    if (!visible) return;
+    const id = state.selectedRowId;
+    const row = state.selectedRowObj || {};
+    if (app.managerCurrentRequest) app.managerCurrentRequest.textContent = id == null ? "—" : String(id);
+    if (app.managerMasterId) app.managerMasterId.value = row.MasterId ?? row.masterId ?? "";
+    if (app.managerStatus) app.managerStatus.value = row.RequestStatus ?? row.requestStatus ?? "Новая";
+    const d = row.CompletionDate ?? row.completionDate ?? "";
+    if (app.managerCompletionDate) app.managerCompletionDate.value = d ? String(d).slice(0, 10) : "";
+  }
+
+  async function assignMasterAction(){
+    if (!canManageRequests()) return showMessage("warn","Нет доступа","Это действие доступно только менеджеру или оператору.");
+    if (!state.selectedRowId) return showMessage("warn","Нет заявки","Сначала выбери заявку.");
+    const raw = (app.managerMasterId?.value || "").trim();
+    const masterId = raw === "" ? null : Number(raw);
+    if (raw !== "" && Number.isNaN(masterId)) return showMessage("warn","Неверный мастер","Укажи числовой ID мастера.");
+    try{
+      setBusy(true, "Assign master");
+      const url = apiUrl(`/Request/${state.selectedRowId}/assign-master`);
+      await http("PATCH", url, { masterId }, true);
+      showMessage("ok","Готово","Мастер назначен.");
+      await reload();
+    } catch(e){
+      showMessage("err","Ошибка назначения", String(e?.message || e), e?._details || "");
+    } finally { setBusy(false); }
+  }
+
+  async function changeStatusAction(){
+    if (!state.selectedRowId) return showMessage("warn","Нет заявки","Сначала выбери заявку.");
+    const requestStatus = (app.managerStatus?.value || "").trim();
+    if (!requestStatus) return showMessage("warn","Нет статуса","Выбери статус.");
+    try{
+      setBusy(true, "Change status");
+      const url = apiUrl(`/Request/${state.selectedRowId}/change-status`);
+      await http("PATCH", url, { requestStatus }, true);
+      showMessage("ok","Готово","Статус заявки обновлен.");
+      await reload();
+    } catch(e){
+      showMessage("err","Ошибка статуса", String(e?.message || e), e?._details || "");
+    } finally { setBusy(false); }
+  }
+
+  async function extendDeadlineAction(){
+    if (!canManageRequests()) return showMessage("warn","Нет доступа","Это действие доступно только менеджеру или оператору.");
+    if (!state.selectedRowId) return showMessage("warn","Нет заявки","Сначала выбери заявку.");
+    const completionDate = (app.managerCompletionDate?.value || "").trim();
+    const comment = (app.managerComment?.value || "").trim();
+    if (!completionDate) return showMessage("warn","Нет даты","Укажи новую дату завершения.");
+    try{
+      setBusy(true, "Extend deadline");
+      const url = apiUrl(`/Request/${state.selectedRowId}/extend-deadline`);
+      await http("PATCH", url, { completionDate, comment }, true);
+      showMessage("ok","Готово","Срок выполнения заявки продлен.");
+      await reload();
+    } catch(e){
+      showMessage("err","Ошибка продления", String(e?.message || e), e?._details || "");
+    } finally { setBusy(false); }
+  }
+
   function isPkField(entity, fieldName){
     return entity?.pk && fieldName && fieldName.toLowerCase() === entity.pk.toLowerCase();
   }
@@ -858,32 +792,25 @@
     state.currentEntity = entity;
     state.currentFormMode = mode;
     app.formFields.innerHTML = "";
-
     const isCreate = mode === "create";
     app.formTitle.textContent = isCreate ? `Add: ${entity.name}` : `Edit: ${entity.name}`;
     app.formBadge.textContent = isCreate ? "CREATE" : "EDIT";
     setBadge(app.formBadge, isCreate ? "ok" : "warn");
-
     const row = state.selectedRowObj || {};
 
     for (const f of (entity.fields || [])){
       if (!f?.name) continue;
       if (isPkField(entity, f.name)) continue;
-
       const wrap = document.createElement("div");
       wrap.className = "field";
-
       const lab = document.createElement("label");
       lab.textContent = f.name;
       wrap.appendChild(lab);
-
       const itype = inputTypeFor(f.type);
-
       const input = document.createElement("input");
       input.type = itype === "checkbox" ? "checkbox" : itype;
       input.dataset.field = f.name;
       input.dataset.ftype = itype;
-
       const errId = `err_${f.name}`;
       input.dataset.err = errId;
 
@@ -892,7 +819,6 @@
         const k2 = findKeyCI(row, camelCase(f.name));
         const key = k1 || k2;
         const v = key ? row[key] : null;
-
         if (itype === "checkbox") input.checked = !!v;
         else if (itype === "number") input.value = (v === null || v === undefined) ? "" : String(v);
         else if (itype === "datetime-local") input.value = toDatetimeLocal(v);
@@ -906,11 +832,9 @@
       const hint = document.createElement("div");
       hint.className = "hint";
       hint.textContent = hintFor(f);
-
       const err = document.createElement("div");
       err.className = "errtxt";
       err.id = errId;
-
       input.addEventListener("input", () => {
         err.textContent = "";
         if (itype === "number"){
@@ -918,11 +842,9 @@
           if (raw !== "" && Number.isNaN(Number(raw))) err.textContent = "Нужно число.";
         }
       });
-
       wrap.appendChild(input);
       wrap.appendChild(hint);
       wrap.appendChild(err);
-
       app.formFields.appendChild(wrap);
     }
   }
@@ -930,17 +852,13 @@
   function buildPayloadFromForm(){
     const obj = {};
     let ok = true;
-
     for (const err of app.formFields.querySelectorAll(".errtxt")) err.textContent = "";
-
     for (const el of app.formFields.querySelectorAll("[data-field]")){
       const name = el.dataset.field;
       const type = el.dataset.ftype || "text";
       const errId = el.dataset.err;
       const errEl = errId ? document.getElementById(errId) : null;
-
       let value;
-
       if (type === "checkbox") value = !!el.checked;
       else if (type === "number"){
         const raw = (el.value || "").trim();
@@ -956,10 +874,8 @@
       } else {
         value = (el.value || "");
       }
-
       obj[name] = value;
     }
-
     return { ok, obj };
   }
 
@@ -971,18 +887,14 @@
     const entity = state.currentEntity;
     const mode = state.currentFormMode;
     if (!entity || !mode) return;
-
     const { ok, obj } = buildPayloadFromForm();
     if (!ok){
       showMessage("warn","Validation","Исправьте ошибки в форме.");
       return;
     }
-
     const route = normRoute(entity);
-
     try{
       setBusy(true,"Saving");
-
       if (mode === "create"){
         const url = apiUrl(`/${route}`);
         await http("POST", url, obj, true);
@@ -1011,16 +923,13 @@
   async function deleteSelected(){
     const entity = getSelectedEntity();
     if (!entity) return;
-
     const id = state.selectedRowId;
     if (id===null || id===undefined || id===""){
       showMessage("warn","No selection","Select a card first.");
       return;
     }
-
     const ok = await confirmDialog("Delete", `Delete ${entity.name} with ID = ${id}?`);
     if (!ok) return;
-
     try{
       setBusy(true,"Deleting");
       const url = apiUrl(`/${normRoute(entity)}/${id}`);
@@ -1034,7 +943,6 @@
     }
   }
 
-  // ===== Views =====
   function setActiveNav(btn){
     for (const b of [app.navTables, app.navStats, app.navLogs, app.navHistory]){
       if (!b) continue;
@@ -1049,33 +957,24 @@
     }
   }
 
-  // ===== init: Login page =====
   function initLoginPage(){
     wireModalClose(shared.msgModal);
-
     shared.btnDoLogin?.addEventListener("click", () => doLogin(false));
     shared.btnRegister?.addEventListener("click", () => doLogin(true));
     shared.btnGoApp?.addEventListener("click", () => goToApp());
-
     shared.loginUser?.addEventListener("keydown", (ev) => { if (ev.key === "Enter") doLogin(false); });
     shared.loginPass?.addEventListener("keydown", (ev) => { if (ev.key === "Enter") doLogin(false); });
-
-    // already logged in -> app
     if (state.token) setTimeout(() => goToApp(), 50);
   }
 
-  // ===== init: App page =====
   function initAppPage(){
-    // must have token
     if (!state.token) { goToLogin(); return; }
-
     wireModalClose(shared.msgModal);
     wireModalClose(app.tokenModal);
     wireModalClose(app.formModal);
     wireModalClose(app.detailsModal);
     wireModalClose(app.confirmModal);
 
-    // confirm wiring
     app.btnConfirmYes?.addEventListener("click", () => {
       closeModal(app.confirmModal);
       const r = state.confirmResolve;
@@ -1091,13 +990,9 @@
       }
     });
 
-    // nav
     app.navTables?.addEventListener("click", () => { setActiveNav(app.navTables); showView("view_tables"); });
     app.navStats?.addEventListener("click", async () => {
-      if (!canViewStats()){
-        showMessage("warn", "Нет доступа", "Статистика доступна только ролям Менеджер, Оператор и Мастер.");
-        return;
-      }
+      if (!canViewStats()) return showMessage("warn", "Нет доступа", "Статистика доступна только ролям Менеджер, Оператор и Мастер.");
       setActiveNav(app.navStats);
       showView("view_stats");
       await loadStats();
@@ -1109,7 +1004,6 @@
       if (ok) doLogout();
     });
 
-    // token modal
     app.btnTokenToggle?.addEventListener("click", () => openModal(app.tokenModal));
     app.btnTokenCopy?.addEventListener("click", async () => {
       try{
@@ -1119,12 +1013,8 @@
         showMessage("warn","Clipboard blocked","Browser denied clipboard access.");
       }
     });
-
-    // login page + logout
     app.btnLoginPage?.addEventListener("click", () => goToLogin());
     app.btnLogout?.addEventListener("click", () => doLogout());
-
-    // details copy
     app.btnDetailsCopy?.addEventListener("click", async () => {
       try{
         await navigator.clipboard.writeText(JSON.stringify(state.selectedRowObj || {}, null, 2));
@@ -1133,22 +1023,18 @@
         showMessage("warn","Clipboard blocked","Browser denied clipboard access.");
       }
     });
-
-    // logs
     app.btnLogsClear?.addEventListener("click", () => { if (app.log) app.log.textContent = ""; });
-    app.btnStatsReload?.addEventListener("click", loadStats);
 
-    // entities + auth UI
     renderEntities();
     setAuthUI();
-    if (app.navStats) app.navStats.style.display = canViewStats() ? "" : "none";
-
     renderQualityQr();
+    if (app.navStats) app.navStats.style.display = canViewStats() ? "" : "none";
+    if (app.pageSize) app.pageSize.value = String(state.pageSize);
 
-    app.btnOpenQualityForm?.addEventListener("click", () => {
-      window.open(QUALITY_FORM_URL, "_blank", "noopener,noreferrer");
-    });
-
+    app.btnReload?.addEventListener("click", reload);
+    app.btnOpenView?.addEventListener("click", openDetails);
+    app.btnStatsReload?.addEventListener("click", loadStats);
+    app.btnOpenQualityForm?.addEventListener("click", () => window.open(QUALITY_FORM_URL, "_blank", "noopener,noreferrer"));
     app.btnCopyQualityLink?.addEventListener("click", async () => {
       try{
         await navigator.clipboard.writeText(QUALITY_FORM_URL);
@@ -1158,11 +1044,9 @@
       }
     });
 
-    if (app.pageSize) app.pageSize.value = String(state.pageSize);
-
-    // actions
-    app.btnReload?.addEventListener("click", reload);
-    app.btnOpenView?.addEventListener("click", openDetails);
+    app.btnAssignMaster?.addEventListener("click", assignMasterAction);
+    app.btnChangeStatus?.addEventListener("click", changeStatusAction);
+    app.btnExtendDeadline?.addEventListener("click", extendDeadlineAction);
 
     app.btnOpenCreate?.addEventListener("click", () => {
       const entity = getSelectedEntity();
@@ -1184,7 +1068,6 @@
     app.btnOpenDelete?.addEventListener("click", deleteSelected);
     app.btnFormSubmit?.addEventListener("click", submitForm);
 
-    // pagination
     app.btnPrev?.addEventListener("click", () => gotoPage(state.page - 1));
     app.btnNext?.addEventListener("click", () => gotoPage(state.page + 1));
     app.btnPageGo?.addEventListener("click", () => {
@@ -1198,18 +1081,19 @@
       gotoPage(1);
     });
 
-    // search local
     app.searchQ?.addEventListener("keydown", (ev) => { if (ev.key==="Enter") searchLocal(); });
-    app.searchQ?.addEventListener("input", () => searchLocal());
-
-    // entity change reload
+    app.searchQ?.addEventListener("input", () => {
+      const entity = getSelectedEntity();
+      if (entity?.name === "Request") return;
+      searchLocal();
+    });
     app.entitySelect?.addEventListener("change", () => reload());
 
     resetSelection();
+    syncRequestManagerPanel();
     setTimeout(() => reload(), 50);
   }
 
-  // ===== Bootstrap =====
   if (page === "login") initLoginPage();
   else initAppPage();
 })();

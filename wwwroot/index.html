@@ -6,7 +6,6 @@
   <title>CONDI — Web UI</title>
   <link rel="stylesheet" href="site.css" />
 </head>
-
 <body data-page="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -14,7 +13,6 @@
         <div class="title">CONDI — Web UI</div>
         <div class="sub">Authorized: <span id="auth_status">Not authorized</span></div>
       </div>
-
       <nav class="nav">
         <button class="navbtn active" id="nav_tables" type="button">TABLES</button>
         <button class="navbtn" id="nav_stats" type="button">STATS</button>
@@ -29,15 +27,10 @@
     <section class="workpanel">
       <div class="inner">
 
-        <!-- TABLES VIEW -->
         <div class="view active" id="view_tables">
           <div class="row">
-            <div class="label">
-              <select id="entity_select" class="select-table"></select>
-            </div>
-
+            <div class="label"><select id="entity_select" class="select-table"></select></div>
             <input id="search_q" class="search" placeholder="Search" />
-
             <button class="btn" id="btn_open_create" type="button">ADD</button>
           </div>
 
@@ -47,43 +40,78 @@
               <span class="pill">Found: <span id="search_count">—</span></span>
               <span class="pill">Page: <span id="page_label">1 / 1</span></span>
             </div>
-
             <div class="spacer"></div>
-
             <button class="btn btn-lite" id="btn_reload" type="button">RELOAD</button>
             <button class="btn btn-small" id="btn_open_view" type="button">OPEN</button>
             <button class="btn btn-small" id="btn_open_edit" type="button">EDIT</button>
             <button class="btn btn-small btn-danger" id="btn_open_delete" type="button">DELETE</button>
           </div>
 
-          <!-- Pagination controls -->
+          <section class="managerpanel" id="request_manager_panel" style="display:none; margin-top:12px;">
+            <div class="row">
+              <div class="label" style="font-size:22px;">Управление заявкой</div>
+              <div class="spacer"></div>
+              <span class="pill">Текущая заявка: <span id="manager_current_request">—</span></span>
+            </div>
+
+            <div class="managergrid" style="margin-top:12px;">
+              <div class="managercard">
+                <div class="managercard-title">Назначение мастера</div>
+                <label class="fieldlbl" for="manager_master_id">ID мастера</label>
+                <input id="manager_master_id" class="managerinput" placeholder="Например 3" />
+                <button class="btn" id="btn_assign_master" type="button">ASSIGN MASTER</button>
+              </div>
+
+              <div class="managercard">
+                <div class="managercard-title">Смена статуса</div>
+                <label class="fieldlbl" for="manager_status">Статус</label>
+                <select id="manager_status" class="managerinput">
+                  <option value="Новая">Новая</option>
+                  <option value="В работе">В работе</option>
+                  <option value="Ожидание запчастей">Ожидание запчастей</option>
+                  <option value="Выполнено">Выполнено</option>
+                  <option value="Отменена">Отменена</option>
+                </select>
+                <button class="btn" id="btn_change_status" type="button">CHANGE STATUS</button>
+              </div>
+
+              <div class="managercard managercard-wide">
+                <div class="managercard-title">Продление срока</div>
+                <div class="managerdeadline-grid">
+                  <div>
+                    <label class="fieldlbl" for="manager_completion_date">Новая дата завершения</label>
+                    <input id="manager_completion_date" class="managerinput" type="date" />
+                  </div>
+                  <div>
+                    <label class="fieldlbl" for="manager_comment">Комментарий</label>
+                    <input id="manager_comment" class="managerinput" placeholder="Например: ожидается поставка комплектующих" />
+                  </div>
+                </div>
+                <button class="btn" id="btn_extend_deadline" type="button">EXTEND DEADLINE</button>
+              </div>
+            </div>
+          </section>
+
           <div class="row" style="margin-top: 10px;">
             <button class="btn btn-lite" id="btn_page_prev" type="button">Prev</button>
             <button class="btn btn-lite" id="btn_page_next" type="button">Next</button>
-
             <span class="pill">Go to page:</span>
             <input id="page_input" style="width:110px; background:#fff; color:#111; border-color:rgba(0,0,0,.25);" placeholder="1" />
             <button class="btn btn-lite" id="btn_page_go" type="button">Go</button>
-
             <span class="pill">Go to ID:</span>
             <input id="goto_id" style="width:160px; background:#fff; color:#111; border-color:rgba(0,0,0,.25);" placeholder="e.g. 123" />
             <button class="btn btn-lite" id="btn_goto_id" type="button">Find</button>
-
             <div class="spacer"></div>
-
             <span class="pill">Per page:</span>
             <input id="page_size" style="width:110px; background:#fff; color:#111; border-color:rgba(0,0,0,.25);" placeholder="12" />
             <button class="btn btn-lite" id="btn_page_apply" type="button">Apply</button>
           </div>
 
-          <!-- CARDS -->
-          <div class="cardswrap">
-            <div class="cardsgrid" id="cards_grid"></div>
-          </div>
+          <div class="cardswrap"><div class="cardsgrid" id="cards_grid"></div></div>
 
           <div class="row" style="margin-top: 10px;">
             <div class="muted" style="font-family: ui-sans-serif, system-ui; font-size: 12px;">
-              Tip: click card to select • double-click (or OPEN) to view • Enter in Search filters locally
+              Tip: click card to select • double-click (or OPEN) to view • Enter in Search filters locally. Для Request поиск идет по API.
             </div>
             <div class="spacer"></div>
             <button class="btn btn-lite" id="btn_token_toggle" type="button">TOKEN</button>
@@ -92,7 +120,6 @@
           </div>
         </div>
 
-        <!-- STATS VIEW -->
         <div class="view" id="view_stats">
           <div class="row">
             <div class="label">Статистика заявок</div>
@@ -101,52 +128,29 @@
           </div>
 
           <div class="statsgrid" style="margin-top:12px;">
-            <div class="statcard">
-              <div class="statlabel">Всего заявок</div>
-              <div class="statvalue" id="stat_total">0</div>
-            </div>
-
-            <div class="statcard">
-              <div class="statlabel">Выполнено</div>
-              <div class="statvalue" id="stat_completed">0</div>
-            </div>
-
-            <div class="statcard">
-              <div class="statlabel">Среднее время ремонта</div>
-              <div class="statvalue" id="stat_avg_days">0 дн.</div>
-            </div>
+            <div class="statcard"><div class="statlabel">Всего заявок</div><div class="statvalue" id="stat_total">0</div></div>
+            <div class="statcard"><div class="statlabel">Выполнено</div><div class="statvalue" id="stat_completed">0</div></div>
+            <div class="statcard"><div class="statlabel">Среднее время ремонта</div><div class="statvalue" id="stat_avg_days">0 дн.</div></div>
           </div>
 
           <div class="stats2col" style="margin-top:14px;">
             <div class="statpanel">
-              <div class="row">
-                <div class="label" style="font-size:22px;">По статусам</div>
-              </div>
+              <div class="row"><div class="label" style="font-size:22px;">По статусам</div></div>
               <div id="stats_by_status" class="statslist" style="margin-top:10px;"></div>
             </div>
-
             <div class="statpanel">
-              <div class="row">
-                <div class="label" style="font-size:22px;">По типам техники</div>
-              </div>
+              <div class="row"><div class="label" style="font-size:22px;">По типам техники</div></div>
               <div id="stats_by_type" class="statslist" style="margin-top:10px;"></div>
             </div>
           </div>
 
           <section class="statpanel" style="margin-top:14px;">
-            <div class="row">
-              <div class="label" style="font-size:22px;">Опрос качества</div>
-            </div>
-
+            <div class="row"><div class="label" style="font-size:22px;">Опрос качества</div></div>
             <div class="qrwrap" style="margin-top:12px;">
-              <div class="qrbox">
-                <img id="quality_qr_img" alt="QR-код опроса качества" />
-              </div>
-
+              <div class="qrbox"><img id="quality_qr_img" alt="QR-код опроса качества" /></div>
               <div class="qrinfo">
                 <div class="muted">Ссылка на форму:</div>
                 <div id="quality_form_link" class="qrlink"></div>
-
                 <div class="row" style="margin-top:12px;">
                   <button class="btn btn-lite" id="btn_open_quality_form" type="button">OPEN FORM</button>
                   <button class="btn btn-lite" id="btn_copy_quality_link" type="button">COPY LINK</button>
@@ -156,135 +160,61 @@
           </section>
         </div>
 
-        <!-- LOGS VIEW -->
         <div class="view" id="view_logs">
-          <div class="row">
-            <div class="label">Logs</div>
-            <div class="spacer"></div>
-            <button class="btn btn-lite" id="btn_logs_clear" type="button">CLEAR</button>
-          </div>
+          <div class="row"><div class="label">Logs</div><div class="spacer"></div><button class="btn btn-lite" id="btn_logs_clear" type="button">CLEAR</button></div>
           <pre id="log" class="logbox"></pre>
         </div>
 
-        <!-- HISTORY VIEW -->
         <div class="view" id="view_history">
-          <div class="row">
-            <div class="label">History</div>
-          </div>
-          <div style="margin-top:12px; font-family: ui-sans-serif, system-ui;">
-            Позже сюда можно добавить историю действий (Create/Edit/Delete) — когда подключим backend audit.
-          </div>
+          <div class="row"><div class="label">History</div></div>
+          <div style="margin-top:12px; font-family: ui-sans-serif, system-ui;">Позже сюда можно добавить историю действий (Create/Edit/Delete) — когда подключим backend audit.</div>
         </div>
-
       </div>
     </section>
   </main>
 
-  <!-- Token modal -->
   <div class="modal" id="token_modal" role="dialog" aria-modal="true">
     <div class="modal-backdrop" data-close="1"></div>
     <div class="modal-panel">
-      <div class="modal-header">
-        <div class="modal-title">
-          <span class="badge" id="token_badge">JWT</span>
-          <span>Token</span>
-        </div>
-        <button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button>
-      </div>
-      <div class="modal-body">
-        <pre id="token_box" class="logbox" style="min-height:auto;"></pre>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-lite" id="btn_token_copy" type="button">Copy</button>
-        <button class="btn" data-close="1" type="button">OK</button>
-      </div>
+      <div class="modal-header"><div class="modal-title"><span class="badge" id="token_badge">JWT</span><span>Token</span></div><button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button></div>
+      <div class="modal-body"><pre id="token_box" class="logbox" style="min-height:auto;"></pre></div>
+      <div class="modal-footer"><button class="btn btn-lite" id="btn_token_copy" type="button">Copy</button><button class="btn" data-close="1" type="button">OK</button></div>
     </div>
   </div>
 
-  <!-- Details modal (card expand) -->
   <div class="modal" id="details_modal" role="dialog" aria-modal="true">
     <div class="modal-backdrop" data-close="1"></div>
     <div class="modal-panel">
-      <div class="modal-header">
-        <div class="modal-title">
-          <span class="badge ok" id="details_badge">DETAILS</span>
-          <span id="details_title">…</span>
-        </div>
-        <button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button>
-      </div>
-      <div class="modal-body">
-        <div id="details_body" style="font-family: ui-sans-serif, system-ui;"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-lite" id="btn_details_copy" type="button">Copy JSON</button>
-        <button class="btn" data-close="1" type="button">OK</button>
-      </div>
+      <div class="modal-header"><div class="modal-title"><span class="badge ok" id="details_badge">DETAILS</span><span id="details_title">…</span></div><button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button></div>
+      <div class="modal-body"><div id="details_body" style="font-family: ui-sans-serif, system-ui;"></div></div>
+      <div class="modal-footer"><button class="btn btn-lite" id="btn_details_copy" type="button">Copy JSON</button><button class="btn" data-close="1" type="button">OK</button></div>
     </div>
   </div>
 
-  <!-- Create/Edit modal (NO JSON) -->
   <div class="modal" id="form_modal" role="dialog" aria-modal="true">
     <div class="modal-backdrop" data-close="1"></div>
     <div class="modal-panel">
-      <div class="modal-header">
-        <div class="modal-title">
-          <span class="badge" id="form_badge">FORM</span>
-          <span id="form_title">…</span>
-        </div>
-        <button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button>
-      </div>
-      <div class="modal-body">
-        <div id="form_fields" class="formgrid"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-lite" data-close="1" type="button">Cancel</button>
-        <button class="btn" id="btn_form_submit" type="button">Save</button>
-      </div>
+      <div class="modal-header"><div class="modal-title"><span class="badge" id="form_badge">FORM</span><span id="form_title">…</span></div><button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button></div>
+      <div class="modal-body"><div id="form_fields" class="formgrid"></div></div>
+      <div class="modal-footer"><button class="btn btn-lite" data-close="1" type="button">Cancel</button><button class="btn" id="btn_form_submit" type="button">Save</button></div>
     </div>
   </div>
 
-  <!-- Confirm modal -->
   <div class="modal" id="confirm_modal" role="dialog" aria-modal="true">
     <div class="modal-backdrop" data-close="1"></div>
     <div class="modal-panel">
-      <div class="modal-header">
-        <div class="modal-title">
-          <span class="badge warn" id="confirm_badge">CONFIRM</span>
-          <span id="confirm_title">Confirm</span>
-        </div>
-        <button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button>
-      </div>
-      <div class="modal-body">
-        <div id="confirm_body" style="font-family: ui-sans-serif, system-ui;">…</div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-lite" data-close="1" type="button">Cancel</button>
-        <button class="btn btn-danger" id="btn_confirm_yes" type="button">Yes</button>
-      </div>
+      <div class="modal-header"><div class="modal-title"><span class="badge warn" id="confirm_badge">CONFIRM</span><span id="confirm_title">Confirm</span></div><button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button></div>
+      <div class="modal-body"><div id="confirm_body" style="font-family: ui-sans-serif, system-ui;">…</div></div>
+      <div class="modal-footer"><button class="btn btn-lite" data-close="1" type="button">Cancel</button><button class="btn btn-danger" id="btn_confirm_yes" type="button">Yes</button></div>
     </div>
   </div>
 
-  <!-- Message modal (errors) -->
   <div class="modal" id="msg_modal" role="dialog" aria-modal="true">
     <div class="modal-backdrop" data-close="1"></div>
     <div class="modal-panel">
-      <div class="modal-header">
-        <div class="modal-title">
-          <span class="badge" id="msg_kind">INFO</span>
-          <span id="msg_title">Message</span>
-        </div>
-        <button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button>
-      </div>
-      <div class="modal-body">
-        <div id="msg_body" style="font-family: ui-sans-serif, system-ui; white-space: pre-wrap;">…</div>
-        <details style="margin-top: 10px; font-family: ui-sans-serif, system-ui;">
-          <summary>Details</summary>
-          <pre id="msg_details" class="logbox" style="min-height:auto;"></pre>
-        </details>
-      </div>
-      <div class="modal-footer">
-        <button class="btn" data-close="1" type="button">OK</button>
-      </div>
+      <div class="modal-header"><div class="modal-title"><span class="badge" id="msg_kind">INFO</span><span id="msg_title">Message</span></div><button class="btn btn-lite" data-close="1" type="button" aria-label="Close">✕</button></div>
+      <div class="modal-body"><div id="msg_body" style="font-family: ui-sans-serif, system-ui; white-space: pre-wrap;">…</div><details style="margin-top: 10px; font-family: ui-sans-serif, system-ui;"><summary>Details</summary><pre id="msg_details" class="logbox" style="min-height:auto;"></pre></details></div>
+      <div class="modal-footer"><button class="btn" data-close="1" type="button">OK</button></div>
     </div>
   </div>
 
