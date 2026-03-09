@@ -314,6 +314,111 @@ public class RequestController : ControllerBase
         });
     }
 
+    [HttpPatch("{id:int}/assign-master")]
+    [Authorize(Roles = Roles.Manager + "," + Roles.Operator)]
+    public async Task<IActionResult> AssignMaster(int id, [FromBody] AssignMasterDto dto)
+    {
+        var request = await _db.Set<Request>().FirstOrDefaultAsync(x => x.RequestId == id);
+        if (request is null) return NotFound("Заявка не найдена.");
+
+        if (dto.MasterId.HasValue)
+        {
+            var masterExists = await _db.Set<User>()
+                .AnyAsync(x => x.UserId == dto.MasterId.Value && x.Type == Roles.Master);
+
+            if (!masterExists)
+                return BadRequest("Указанный мастер не найден.");
+        }
+
+        request.MasterId = dto.MasterId;
+        await _db.SaveChangesAsync();
+
+        return Ok(new
+        {
+            message = "Мастер назначен.",
+            requestId = request.RequestId,
+            masterId = request.MasterId
+        });
+    }
+
+    [HttpPatch("{id:int}/change-status")]
+    [Authorize(Roles = Roles.Manager + "," + Roles.Operator + "," + Roles.Master)]
+    public async Task<IActionResult> ChangeStatus(int id, [FromBody] ChangeRequestStatusDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.RequestStatus))
+            return BadRequest("Статус обязателен.");
+
+        var allowedStatuses = new[]
+        {
+            "Новая",
+            "В работе",
+            "Ожидание запчастей",
+            "Выполнено",
+            "Отменена"
+        };
+
+        var newStatus = dto.RequestStatus.Trim();
+
+        if (!allowedStatuses.Contains(newStatus))
+            return BadRequest("Недопустимый статус заявки.");
+
+        var request = await _db.Set<Request>().FirstOrDefaultAsync(x => x.RequestId == id);
+        if (request is null) return NotFound("Заявка не найдена.");
+
+        request.RequestStatus = newStatus;
+
+        if (newStatus == "Выполнено" && !request.CompletionDate.HasValue)
+            request.CompletionDate = DateOnly.FromDateTime(DateTime.Today);
+
+        await _db.SaveChangesAsync();
+
+        return Ok(new
+        {
+            message = "Статус заявки обновлен.",
+            requestId = request.RequestId,
+            requestStatus = request.RequestStatus,
+            completionDate = request.CompletionDate
+        });
+    }
+
+    [HttpPatch("{id:int}/extend-deadline")]
+    [Authorize(Roles = Roles.Manager + "," + Roles.Operator)]
+    public async Task<IActionResult> ExtendDeadline(int id, [FromBody] ExtendCompletionDateDto dto)
+    {
+        if (!dto.CompletionDate.HasValue)
+            return BadRequest("Новая дата завершения обязательна.");
+
+        var request = await _db.Set<Request>().FirstOrDefaultAsync(x => x.RequestId == id);
+        if (request is null) return NotFound("Заявка не найдена.");
+
+        if (request.StartDate.HasValue && dto.CompletionDate.Value < request.StartDate.Value)
+            return BadRequest("Дата завершения не может быть раньше даты начала.");
+
+        request.CompletionDate = dto.CompletionDate.Value;
+
+        await _db.SaveChangesAsync();
+
+        if (!string.IsNullOrWhiteSpace(dto.Comment))
+        {
+            var managerComment = new Comment
+            {
+                Message = $"Продление срока: {dto.Comment}",
+                RequestId = request.RequestId,
+                MasterId = request.MasterId
+            };
+
+            _db.Set<Comment>().Add(managerComment);
+            await _db.SaveChangesAsync();
+        }
+
+        return Ok(new
+        {
+            message = "Срок выполнения заявки продлен.",
+            requestId = request.RequestId,
+            completionDate = request.CompletionDate
+        });
+    }
+
     [HttpDelete("{id:int}")]
     [Authorize(Roles = Roles.Operator)]
     public async Task<IActionResult> Delete(int id)
