@@ -24,10 +24,32 @@ public class RequestController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = Roles.ManagerOperatorOrMaster)]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(
+        [FromQuery] int? requestId,
+        [FromQuery] string? status,
+        [FromQuery] string? climateTechType,
+        [FromQuery] int? masterId,
+        [FromQuery] int? clientId)
     {
-        var items = await _db.Set<Request>()
-            .AsNoTracking()
+        var query = _db.Set<Request>().AsNoTracking().AsQueryable();
+
+        if (requestId.HasValue)
+            query = query.Where(x => x.RequestId == requestId.Value);
+
+        if (!string.IsNullOrEmpty(status))
+            query = query.Where(x => x.RequestStatus == status);
+
+        if (!string.IsNullOrEmpty(climateTechType))
+            query = query.Where(x => x.ClimateTechType == climateTechType);
+
+        if (masterId.HasValue)
+            query = query.Where(x => x.MasterId == masterId.Value);
+
+        if (clientId.HasValue)
+            query = query.Where(x => x.ClientId == clientId.Value);
+
+        var items = await query
+            .OrderBy(x => x.RequestId)
             .Select(x => new RequestDto
             {
 
