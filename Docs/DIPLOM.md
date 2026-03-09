@@ -30,7 +30,7 @@
 
 ## 3. Блок-схема структуры телеграм-бота
 
-![Блок-схема](Docs/BlockSchemeImage/blocksheme_tgbot.png)
+![Блок-схема](BlockSchemeImage\blockscheme_tgbot.png)
 
 ## 4. Реализация функционала телеграмм-бота
 
