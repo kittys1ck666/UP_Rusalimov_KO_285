@@ -629,7 +629,22 @@
 
     try{
       setBusy(true,"Loading");
-      const url = apiUrl(`/${normRoute(entity)}`);
+      let url = apiUrl(`/${normRoute(entity)}`);
+
+      const q = (app.searchQ?.value || "").trim();
+
+      if (entity.name === "Request" && q) {
+        const params = new URLSearchParams();
+
+        if (!isNaN(Number(q))) {
+          params.set("requestId", q);
+        } else {
+          params.set("status", q);
+        }
+
+        url += `?${params.toString()}`;
+      }
+
       const rows = await http("GET", url, undefined, true);
       const list = Array.isArray(rows) ? rows : (rows || []);
       setViewRows(entity, list);
