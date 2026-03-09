@@ -358,3 +358,44 @@ input::placeholder{ color: rgba(255,255,255,.65); }
   font-weight: 900;
   color: rgba(0,0,0,.75);
 }
+
+
+.qrwrap{
+  display:grid;
+  grid-template-columns: 220px 1fr;
+  gap:16px;
+  align-items:start;
+}
+@media (max-width: 900px){
+  .qrwrap{ grid-template-columns: 1fr; }
+}
+
+.qrbox{
+  border: 2px solid rgba(0,0,0,.20);
+  border-radius: 16px;
+  background: rgba(255,255,255,.55);
+  padding: 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height: 220px;
+}
+
+.qrbox img{
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  display:block;
+}
+
+.qrinfo{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.qrlink{
+  word-break: break-all;
+  font-weight: 700;
+  color: rgba(0,0,0,.78);
+}

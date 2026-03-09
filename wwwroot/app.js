@@ -1,4 +1,3 @@
-// PgGen gen-web — FULL app.js (cards + pagination + details + forms + separate login page)
 (() => {
   "use strict";
 
@@ -119,6 +118,11 @@
     statsByStatus: $("stats_by_status"),
     statsByType: $("stats_by_type"),
 
+    qualityQrImg: $("quality_qr_img"),
+    qualityFormLink: $("quality_form_link"),
+    btnOpenQualityForm: $("btn_open_quality_form"),
+    btnCopyQualityLink: $("btn_copy_quality_link"),
+
     // auth/token
     authStatus: $("auth_status"),
     btnTokenToggle: $("btn_token_toggle"),
@@ -201,6 +205,9 @@
 
     confirmResolve: null,
   };
+
+  // === CHANGE THIS LINK TO YOUR REAL QUALITY SURVEY FORM ===
+  const QUALITY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdhZcExx6LSIXxk0ub55mSu-WIh23WYdGG9HY5EZhLDo7P8eA/viewform";
 
   // ===== Modal helpers =====
   function openModal(el){ if (el) el.classList.add("open"); }
@@ -406,6 +413,19 @@
   function canViewStats(){
     const role = getUserRole();
     return ["Менеджер", "Оператор", "Мастер"].includes(role);
+  }
+
+  function renderQualityQr(){
+    const link = QUALITY_FORM_URL;
+
+    if (app.qualityFormLink) {
+      app.qualityFormLink.textContent = link;
+    }
+
+    if (app.qualityQrImg) {
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(link)}`;
+      app.qualityQrImg.src = qrUrl;
+    }
   }
 
   // ===== App helpers =====
@@ -1122,6 +1142,21 @@
     renderEntities();
     setAuthUI();
     if (app.navStats) app.navStats.style.display = canViewStats() ? "" : "none";
+
+    renderQualityQr();
+
+    app.btnOpenQualityForm?.addEventListener("click", () => {
+      window.open(QUALITY_FORM_URL, "_blank", "noopener,noreferrer");
+    });
+
+    app.btnCopyQualityLink?.addEventListener("click", async () => {
+      try{
+        await navigator.clipboard.writeText(QUALITY_FORM_URL);
+        showMessage("ok", "Copied", "Ссылка на форму скопирована.");
+      } catch {
+        showMessage("warn", "Clipboard blocked", "Браузер не дал доступ к буферу обмена.");
+      }
+    });
 
     if (app.pageSize) app.pageSize.value = String(state.pageSize);
 
